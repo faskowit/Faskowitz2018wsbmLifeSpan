@@ -1,4 +1,4 @@
-function [ loopResults , allFitModels ] = wsbm_looper_wrapper( inputData , modelInputs , loopIters , scoreFunc )
+function [ loopResults , allFitModels ] = wsbm_looper_wrapper( inputData , modelInputs , loopIters , scoreFunc, numTrialPttrn)
 % wrapper for the looper script already in the wsbm code
 
 % initialize the variables we will write into
@@ -10,11 +10,15 @@ loopResults(1:numModels,1) = 1:numModels ;
 
 allFitModels = cell(numModels,loopIters) ;
 
-if nargin < 4
+if ~exist('scoreFunc','var') || isempty(scoreFunc)
   scoreFunc = @(model) model.Para.LogEvidence ;
   disp('using log evidence as score func')
 else
   disp('using provided score func')
+end
+
+if nargin < 5
+   numTrialPttrn = [] ; 
 end
 
 parallel_pool = gcp ; 
@@ -24,9 +28,10 @@ parfor idx = 1:loopIters
     disp(idx)
     
     % Fit
-    [~, tempSores, tempModels] = wsbmLooper(inputData, ...
+    [~, tempSores, tempModels] = wsbmLooper_2(inputData, ...
         modelInputs, ...
-        scoreFunc);
+        scoreFunc,...
+        numTrialPttrn);
     
     allFitModels(:,idx) = tempModels(:) ;
     
