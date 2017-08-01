@@ -35,12 +35,20 @@ for idx=1:numFits % model fits per iteration
             modelInputs{:} ) ;
     else
         
+        if numel(rStruct) == 1
+            r_size = rStruct ;
+        else
+            r_size = size(rStruct,1) ;
+        end
+             
        %begin with uninformative prior
        mu_prior = make_WSBM_prior(...
-           ones(size(rStruct,1),size(adjMat,1)), 0) ;
+           ones(r_size,size(adjMat,1)), 0) ;
         
        for jdx=1:numel(numTrialPttrn)
         
+            % the parameters set after 'modelInputs' will take precendent
+            % over anything specified in that cell array
             [~,tempModel] = wsbm(adjMat, ...
                 rStruct, ...
                 modelInputs{:},...
