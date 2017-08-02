@@ -1,4 +1,4 @@
-function [Best_Models,Scores,Models] = wsbmLooper_2(E,ModelInputs,scorefuncs, numTrialPttrn)
+function [Best_Models,Scores,Models] = wsbmLooper_2(E,ModelInputs,scorefuncs,numTrialPttrn)
 %WSBMLOOPER - a wrapper for wsbm.m fitting multiple models
 %
 %   WSBMLOOPER runs the wsbm.m for various models specified by 
@@ -98,12 +98,12 @@ for mm = 1:num_models,
         else
             % Edits for more functionality here 
       
-            if numel(ModelInputs{1}) == 1
-                r_size = ModelInputs{1} ;
+            if numel(ModelInputs{mm}{1}) == 1
+                r_size = ModelInputs{mm}{1} ;
             else
-                r_size = size(ModelInputs{1},1) ;
+                r_size = size(ModelInputs{mm}{1},1) ;
             end
-            
+                   
            %begin with uninformative prior
            mu_prior = make_WSBM_prior(...
                ones(r_size,size(E,1)), 0) ;
@@ -113,7 +113,6 @@ for mm = 1:num_models,
                 % the parameters set after 'modelInputs' will take precendent
                 % over anything specified in that cell array
                 [~,Model] = wsbm(E, ...
-                    rStruct, ...
                     ModelInputs{mm}{:},...
                     'numTrials', numTrialPttrn(jdx), ...
                     'mu_0', mu_prior ) ;
