@@ -1,4 +1,4 @@
-function [Best_Models,Scores,Models] = wsbmLooper_2(E,ModelInputs,scorefuncs,numTrialPttrn)
+function [Best_Models,Scores,Models] = wsbmLooper_2(E,ModelInputs,scorefuncs,numTrialPttrn,priorWeightPttrn)
 %WSBMLOOPER - a wrapper for wsbm.m fitting multiple models
 %
 %   WSBMLOOPER runs the wsbm.m for various models specified by 
@@ -60,7 +60,6 @@ function [Best_Models,Scores,Models] = wsbmLooper_2(E,ModelInputs,scorefuncs,num
 
 % Josh edit so that the wsbm call can take in a numTrial pattern
 
-
 %-------------------------------------------------------------------------
 % Check Inputs
 %if nargin < 3, scorefuncs = @(model) model.Para.LogEvidence; end
@@ -71,6 +70,10 @@ end
 
 if ~exist('numTrialPttrn','var') || isempty(numTrialPttrn)
     numTrialPttrn = [] ;
+end
+
+if ~exist('priorWeightPttrn','var') || isempty(priorWeightPttrn)
+    priorWeightPttrn = [] ;
 end
 
 if ~iscell(scorefuncs),
@@ -116,7 +119,12 @@ for mm = 1:num_models,
                     ModelInputs{mm}{:},...
                     'numTrials', numTrialPttrn(jdx), ...
                     'mu_0', mu_prior ) ;
-                mu_prior = make_WSBM_prior(Model,2) ;
+                
+                if isempty(priorWeightPttrn)
+                    mu_prior = make_WSBM_prior(Model,jdx) ;
+                else
+                    mu_prior = make_WSBM_prior(Model,priorWeightPttrn(jdx));
+                end
            end        
         end
     catch exception

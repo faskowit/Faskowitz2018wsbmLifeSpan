@@ -1,4 +1,4 @@
-function [ centralModel , allModels ] = wsbmCentralFit( adjMat, rStruct , modelInputs , numFits , priorMu, numTrialPttrn)
+function [ centralModel , allModels ] = wsbmCentralFit( adjMat, rStruct , modelInputs , numFits , priorMu, numTrialPttrn, priorWeightPttrn)
 % will fit wsbm specificed number iterations
 % and will return 'most central' based on variation of information between
 % community labels
@@ -19,8 +19,12 @@ if nargin < 5
     priorMu = '';
 end
 
-if nargin < 6
-    numTrialPttrn = [];
+if ~exist('numTrialPttrn','var') || isempty(numTrialPttrn)
+    numTrialPttrn = [] ;
+end
+
+if ~exist('priorWeightPttrn','var') || isempty(priorWeightPttrn)
+    priorWeightPttrn = [] ;
 end
 
 tempModelStruct = struct() ; 
@@ -54,8 +58,12 @@ for idx=1:numFits % model fits per iteration
                 modelInputs{:},...
                 'numTrials', numTrialPttrn(jdx), ...
                 'mu_0', mu_prior ) ;
-           
-            mu_prior = make_WSBM_prior(tempModel,2) ;
+                         
+            if isempty(priorWeightPttrn)
+                mu_prior = make_WSBM_prior(Model,jdx) ;
+            else
+                mu_prior = make_WSBM_prior(Model,priorWeightPttrn(jdx));
+            end 
        end
            
     end
