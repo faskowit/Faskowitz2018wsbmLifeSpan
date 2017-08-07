@@ -1,4 +1,4 @@
-function [ templateMatBothHemi ] = make_template_mat(dataStruct, leftNodes, rightNodes, initThresh)
+function [ templateMatBothHemi , meanLens ] = make_template_mat(dataStruct, leftNodes, rightNodes, initThresh)
 %% make average mat, and return it
 % we will use function that preserves mat lengths
 % therefore this function needs the additional function: fcn_group_average

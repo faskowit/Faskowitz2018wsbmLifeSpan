@@ -1,4 +1,4 @@
-function [ loopResults , allFitModels ] = wsbm_looper_wrapper( inputData , modelInputs , loopIters , scoreFunc, numTrialPttrn)
+function [ loopResults , allFitModels ] = wsbm_looper_wrapper( inputData , modelInputs , loopIters , scoreFunc, numTrialPttrn, priorWeightPttrn)
 % wrapper for the looper script already in the wsbm code
 
 % initialize the variables we will write into
@@ -17,8 +17,12 @@ else
   disp('using provided score func')
 end
 
-if nargin < 5
-   numTrialPttrn = [] ; 
+if ~exist('numTrialPttrn','var') || isempty(numTrialPttrn)
+    numTrialPttrn = [] ;
+end
+
+if ~exist('priorWeightPttrn','var') || isempty(priorWeightPttrn)
+    priorWeightPttrn = [] ;
 end
 
 parallel_pool = gcp ; 
@@ -31,7 +35,8 @@ parfor idx = 1:loopIters
     [~, tempSores, tempModels] = wsbmLooper_2(inputData, ...
         modelInputs, ...
         scoreFunc,...
-        numTrialPttrn);
+        numTrialPttrn,...
+        priorWeightPttrn);
     
     allFitModels(:,idx) = tempModels(:) ;
     
