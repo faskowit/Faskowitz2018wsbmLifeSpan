@@ -48,8 +48,9 @@ end
 
 % load the vars I need
 % addpath('/home/jfaskowi/JOSHSTUFF/projects/SBM')
-load('4_josh_thanks.mat')
-load('4_josh_thanks2.mat')
+%load('4_josh_thanks.mat')
+%load('4_josh_thanks2.mat')
+load('ccs_surfstat_yeo_info.mat')
 
 if size(communityAssign,2) == 2
     numModules = max(max(communityAssign(:,2)));
