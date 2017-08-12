@@ -39,7 +39,8 @@ end
 % WSBM options
 % distributions 
 WEIGHT_DIST = 'normal' ; 
-EDGE_DIST = 'poisson' ; 
+%EDGE_DIST = 'poisson' ; 
+EDGE_DIST = setup_distr('poisson',[0.1,0.01]) ;
 
 % options for wsbm.m
 INIT_ALPHA = 0.5 ; 
@@ -50,14 +51,14 @@ MODEL_WSBM_MAIN_ITER = 125 ;
 MODEL_WSBM_MU_ITER = 50 ;
 
 % individual wsbm run 
-INDIV_WSBM_NUM_TRIAL = 150 ;
-INDIV_WSBM_MAIN_ITER = 125 ;
+% INDIV_WSBM_NUM_TRIAL = 2000 ;
+INDIV_WSBM_MAIN_ITER = 100 ;
 INDIV_WSBM_MU_ITER = 50 ;
 
 % looper vars when wsbm looped
 LOOPER_ITER = 100 ; 
-LOOPER_NUM_TRIAL = 125 ; 
-LOOPER_MAIN_ITER = 125 ;
+LOOPER_NUM_TRIAL = 2000 ; 
+LOOPER_MAIN_ITER = 100 ;
 LOOPER_MU_ITER = 50 ;
 
 % GLOBAL VARS FOR SCRIPT
