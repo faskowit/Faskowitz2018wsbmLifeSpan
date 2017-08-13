@@ -90,115 +90,136 @@ for idx = 1:numel(kIterOver)
         'mainMaxIter', LOOPER_MAIN_ITER , ...
         'muMaxIter' , LOOPER_MU_ITER,...
         'mainTol',0.01, ...
-        'muTol', 0.01 };
+        'muTol', 0.01 ,...
+        'verbosity', 0};
 
 end
 
-numTrialPtrn = [ 2000 100 100 100 100 100 ] ;
+numTrialPtrn = [ 250 100 100 100 100 100 100 100 100 100 100 ] ;
+% this will be one shorter because there is no prior weight for first run
+% just put a 0 at the end so it doesnt mess it up
+prirPtrn = [ 1 1.5 2 2.5 3.0 3.5 4.0 4.5 5.0 5.5 0 ] ;
 
-%% looper part
+%% k looper part
+% iterate over num communities, k, to find out which k give best evidence
 
 [ kLooperResults , kLooperModels ] = wsbm_looper_wrapper(avgTemp, ...
     modelInputs, ...
     LOOPER_ITER, ...
-    [], numTrialPtrn ) ;
+    [], numTrialPtrn,...
+    prirPtrn) ;
 
 % save this, so that we can reconstruct kLooper results if needed, ~200Mb
 save(strcat(OUTPUT_DIR , '/interim/', OUTPUT_STR, '_kLooperModels.mat' ), 'kLooperModels')
 
-%% figure our what k is best...get all these models
+% now figure out which k is best! 
 
 % find max at each row
-[ ~ , maxIdx ] = max(kLooperResults) ;
-kLoopBestIdx = (mode(maxIdx(2:end))) ;
+[ ~ , kLoopMaxIdx ] = max(kLooperResults) ;
+kLoopBestIdx = (mode(kLoopMaxIdx(2:end))) ;
 kBest = kIterOver(kLoopBestIdx) ;
 
 % get all the models with best k
 kLoopBestModels = cell2struct(kLooperModels(kLoopBestIdx,:), ...
     'Model', LOOPER_ITER );
 
-% and now lets find the median
-[ kCentralModel , kSimVec ] = central_model(kLoopBestModels) ; 
+% and now lets find the centroid based on pairwise variation of info
+[ kCentralModel , kSimVec , kSimVUpTri ] = central_model(kLoopBestModels) ; 
 
-%% temp
+%% sort the kLooperModels...
+% by aligning all to the 'most central' with Hungarian algo
 
-all_kSims = zeros([11 5050]);
+% the ref to align to will be the kCentralModel
+[~,ref] = community_assign(kCentralModel) ;
 
-for idx=1:11
-
-    % get all the models with best k
-    tmp = cell2struct(kLooperModels(idx,:), ...
-        'Model', LOOPER_ITER );
-
-    % and now lets find the median
-    [ ~ , ~, tmp_kSimVec ] = central_model(tmp) ; 
-
-    all_kSims(idx,:) = tmp_kSimVec';
-
-end
-
-%% consensus
-
-kLooperModels_ca = zeros([ length(selectNodesFrmRaw) (size(kLooperModels,2))]) ;
+% preallocate the mat of the bestModels community assignments
+kBestModels_ca_algn = zeros([ length(selectNodesFrmRaw) LOOPER_ITER ]) ;
 
 % first stack all plausible parcellations
-for idx=1:(size(kLooperModels,2))
+for idx=1:LOOPER_ITER
     
-    [~,kLooperModels_ca(:,idx)] = ...
+    [~,tmp] = ...
         community_assign(kLoopBestModels(idx).Model.Para.mu) ;
 
-end
-
-% get agreement mat
-kLooperModels_agreement = agreement(kLooperModels_ca) ;
-kLooperModels_agreement = kLooperModels_agreement ./ (size(kLooperModels,2));
-kLooperModels_consensus = consensus_und(kLooperModels_agreement,0.02,1000) ;
-
-% versatility
-cm = kLooperModels_agreement .* 1 ;
-cs = sin(pi*cm) ;
-versatility = sum(cs,1)./sum(cm,1) ;
-
-%% 
-
-logEvid = zeros([1 (size(kLooperModels,2))]) ;
-
-for idx=1:(size(kLooperModels,2))
+    kBestModels_ca_algn(:,idx) = CBIG_HungarianClusterMatch(ref,tmp) ;
     
-    logEvid(idx) = kLoopBestModels(idx).Model.Para.LogEvidence ;
-
 end
 
-figure
-histogram(logEvid)
-hold on
-plot(templateModel.Para.LogEvidence * ones(1,50), 0:49);
+%% get kSimVec and LogEvid vec sorted
 
-weight_agreement = agreement_weighted(kLooperModels_ca,mat2gray(logEvid)) ;
-weight_agreement(1:(size(weight_agreement,1)+1):end) = 0 ;
+% will be size: numKTested x LOOPER_ITER
+kLooperLogEvids = cellfun(@(a) a.Para.LogEvidence,kLooperModels(:,:)) ;
+% get the row with the best evids, and transpose to make col
+kBestLogEvids = kLooperLogEvids(kLoopBestIdx,:)' ;
+
+% sort evid vector and kSim vector
+[ sort_logEvid, sort_logEvidIdx ] = sort(kBestLogEvids,'descend');
+[ sort_kSimVec, sort_kSimVecIdx ] = sort(kSimVec,'descend');
 
 % show that there is corrleation between logEvid and VI disatnce
-logEvid_kSim_corr = corr(logEvid',kSimVec) ;
+logEvid_kSim_corr = corr(kBestLogEvids,kSimVec) ;
 
-%% what do the models close to the central model
-% look like?
+%% lets iterate over the 100 k best models to create consensus model
+% first we have to turn the hungarian reordered ca_align mat into a wsbm
+% prior to be input into wsbm inference fit
 
-[ sort_kSimVec, sortIdx ] = sort(kSimVec,'descend');
+% lets cuttoff the worst 5% of the runs to clear up the prior a little...
+% TODO... maybe no need for this...
+onlyKeep = 0.95 ;
 
-% get top five
-top5Model = kLoopBestModels(sortIdx(1:5)) ; 
-top5ca = zeros([size(kCentralModel.Data.Raw_Data,1) 5]);
-[~,ref] = community_assign(kCentralModel);
+% first figure out the cuttoff
+cutoff = floor(LOOPER_ITER * onlyKeep) ; 
+kiter_prior = zeros([ kCentralModel.R_Struct.k kCentralModel.Data.n ]) ;
 
-addpath('aux_stuff/')
+% sort the ca_align by similarity
+kBestModels_ca_algn_sort = kBestModels_ca_algn(:,sort_kSimVecIdx);
 
-for idx=1:5
-   
-    disp(top5Model(idx).Model.Para.LogEvidence) 
-    [~,tmp] = community_assign(top5Model(idx).Model);
-    top5ca(:,idx) = CBIG_HungarianClusterMatch(ref,tmp) ;
+% iterate over each node
+for idx=1:(kCentralModel.Data.n)
+
+    kiter_prior(:,idx) = ...
+        sum(bsxfun(@eq,kBestModels_ca_algn_sort(idx,1:cutoff), ...
+        [1:(kCentralModel.R_Struct.k)]'),2) ./ cutoff ;
+        
+end    
+
+%% just testing flotsum rn 
+
+rr = sym_RStruct(10) ; 
+
+    modi = { rr, ...
+        'W_Distr', WEIGHT_DIST, ...
+        'E_Distr', EDGE_DIST, ...
+        'alpha', INIT_ALPHA, ...
+        'mainMaxIter', LOOPER_MAIN_ITER , ...
+        'muMaxIter' , LOOPER_MU_ITER,...
+        'mainTol',0.01, ...
+        'muTol', 0.01 ,...
+        'verbosity', 1   , ...
+        'numTrials', 50 ,...
+        'mu_0',kiter_prior};
+
+tmpResults = cell([10 1]) ;
+
+tic
+for idx=1:10
+[~,tmpResults{idx}] = wsbm(avgTemp, ... 
+    modi{:} ) ;  
+end
+toc
+
+% first stack all plausible parcellations
+for idx=1:10
+    
+    [~,tmp] = ...
+        community_assign(tmpResults{idx}.Para.mu) ;
+
+    ttttt(:,idx) = CBIG_HungarianClusterMatch(ref,tmp) ;
     
 end
+
+agg = agreement(ttttt) ./ 10;
+cnc = consensus_und(agg,0.1,100) ;
 
 %% get centroid of best k and define it as templateModel
 
@@ -262,8 +283,8 @@ if ~strcmp(HEMI_CHOICE,'both')
         scoreVI ) ;
     
     % find max at each row
-    [ ~ , maxIdx ] = max(alphaLooperResults) ;
-    alphaLoopBestIdx = (mode(maxIdx(2:end))) ;
+    [ ~ , kLoopMaxIdx ] = max(alphaLooperResults) ;
+    alphaLoopBestIdx = (mode(kLoopMaxIdx(2:end))) ;
     alphaBest = alphaIterOver(alphaLoopBestIdx) ;
 
     %% need to learn best model one more time and again learn the community assignments 
@@ -411,11 +432,11 @@ fitWSBMAllStruct = fitWSBMAllStruct(removeVec == 0) ;
 
 %% lets look real quick
 
-logEvid = zeros([ size(fitWSBMAllStruct,2) 1 ]) ;
+kBestLogEvids = zeros([ size(fitWSBMAllStruct,2) 1 ]) ;
 
 for idx=1:(size(fitWSBMAllStruct,2))
    
-    logEvid(idx) = fitWSBMAllStruct(idx).Model(5).Para.LogEvidence ;
+    kBestLogEvids(idx) = fitWSBMAllStruct(idx).Model(5).Para.LogEvidence ;
 end
 
 %% end of fitting WSBM on brains
