@@ -32,15 +32,17 @@ if strcmp(PARCELLATION,'yeo')
     LEFT_HEMI_NODES = 2:58 ; %1:57 ;
     RIGHT_HEMI_NODES = 60:116 ; %75:131 ; 
 elseif strcmp(PARCELLATION,'scale125')
-    LEFT_HEMI_NODES = 116:226 ; %1:57 ;
-    RIGHT_HEMI_NODES = 2:108 ; %75:131 ; 
+    LEFT_HEMI_NODES = 116:226 ;
+    RIGHT_HEMI_NODES = 2:108 ; 
 end
 
 % WSBM options
 % distributions 
 WEIGHT_DIST = 'normal' ; 
 %EDGE_DIST = 'poisson' ; 
-EDGE_DIST = setup_distr('poisson',[0.1,0.01]) ;
+%EDGE_DIST = setup_distr('poisson',[0.1,0.01]) ;
+% default params
+EDGE_DIST = setup_distr('poisson',[0,0.001]);
 
 % options for wsbm.m
 INIT_ALPHA = 0.5 ; 
@@ -69,11 +71,10 @@ MASK_THR = 1 ;
 % 'both' 'left' right'
 HEMI_CHOICE = 'both' ; 
 
-OUTPUT_STR = strcat(...
-    PARCELLATION , '_', ...
+OUTPUT_STR = strcat(PARCELLATION , '_', ...
     HEMI_CHOICE, '_', ...
     WEIGHT_DIST, ...
-    EDGE_DIST, '_', ...
+    EDGE_DIST.name, '_', ...
     'a', strrep(num2str(INIT_ALPHA),'.','p')) ;
 
 %% make output dir
