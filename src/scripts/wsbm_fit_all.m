@@ -67,7 +67,8 @@ avgTemp(avgTemp == 0) = NaN ;
 % setup the modelInputs var
 
 % Create a List of Model Inputs to test
-kIterOver = 6:1:11; %   
+% kIterOver = 7:1:11; %   
+kIterOver = 12:1:13;
 
 %set up the cell struct to pass to the looper
 modelInputs = cell(numel(kIterOver),1); 
@@ -95,10 +96,59 @@ for idx = 1:numel(kIterOver)
 
 end
 
-numTrialPtrn = [ 250 100 100 100 100 100 100 100 100 100 100 ] ;
+%numTrialPtrn = [ 250 100 100 100 100 100 100 100 100 100 100 ] ;
 % this will be one shorter because there is no prior weight for first run
 % just put a 0 at the end so it doesnt mess it up
-prirPtrn = [ 1 1.5 2 2.5 3.0 3.5 4.0 4.5 5.0 5.5 0 ] ;
+%prirPtrn = [ 1 1.5 2 2.5 3.0 3.5 4.0 4.5 5.0 5.5 0 ] ;
+
+prirPtrn = [ 1:0.25:4.5 0 ] ;
+numTrialPtrn = [ 250 repmat(100,1,15) ] ;
+
+%% k looper part
+% iterate over num communities, k, to find out which k give best evidence
+
+[ kLooperResults2 , kLooperModels2 ] = wsbm_looper_wrapper(avgTemp, ...
+    modelInputs, ...
+    LOOPER_ITER, ...
+    [], numTrialPtrn,...
+    prirPtrn) ;
+
+%% TEST fit model a few times
+
+kIterOver = 10:10;
+
+%set up the cell struct to pass to the looper
+modelInputs = cell(numel(kIterOver),1); 
+    
+for idx = 1:numel(kIterOver)
+    
+    R_STRUCT_TO_TEST = sym_RStruct(kIterOver(idx)) ;
+    
+    modelInputs{idx} = { R_STRUCT_TO_TEST, ... 
+        'W_Distr', WEIGHT_DIST, ...
+        'E_Distr', EDGE_DIST, ...
+        'alpha', INIT_ALPHA, ...
+        'mainMaxIter', LOOPER_MAIN_ITER , ...
+        'muMaxIter' , LOOPER_MU_ITER,...
+        'mainTol',0.01, ...
+        'muTol', 0.01 ,...
+        'verbosity', 0};
+
+end
+
+%numTrialPtrn = [ 250 100 100 100 100 100 100 100 100 100 100 ] ;
+% this will be one shorter because there is no prior weight for first run
+% just put a 0 at the end so it doesnt mess it up
+%prirPtrn = [ 1 1.5 2 2.5 3.0 3.5 4.0 4.5 5.0 5.5 0 ] ;
+
+prirPtrn = [ 1:0.25:4.5 0 ] ;
+numTrialPtrn = [ 250 repmat(100,1,15) ] ;
+
+[ kLooperResults3 , kLooperModels3 ] = wsbm_looper_wrapper(avgTemp, ...
+    modelInputs, ...
+    LOOPER_ITER, ...
+    [], numTrialPtrn,...
+    prirPtrn) ;
 
 %% k looper part
 % iterate over num communities, k, to find out which k give best evidence
@@ -115,7 +165,7 @@ save(strcat(OUTPUT_DIR , '/interim/', OUTPUT_STR, '_kLooperModels.mat' ), 'kLoop
 % now figure out which k is best! 
 
 % find max at each row
-[ ~ , kLoopMaxIdx ] = max(kLooperResults) ;
+[ ~ , kLoopMaxIdx ] = max(kLooperResults(:,2:end)) ;
 kLoopBestIdx = (mode(kLoopMaxIdx(2:end))) ;
 kBest = kIterOver(kLoopBestIdx) ;
 
@@ -165,7 +215,9 @@ logEvid_kSim_corr = corr(kBestLogEvids,kSimVec) ;
 
 % lets cuttoff the worst 5% of the runs to clear up the prior a little...
 % TODO... maybe no need for this...
-onlyKeep = 0.95 ;
+% if no cutting of... then sorting doesn't matter-but Hungarian match still
+% does matter
+onlyKeep = 1; %0.95 ;
 
 % first figure out the cuttoff
 cutoff = floor(LOOPER_ITER * onlyKeep) ; 
@@ -183,11 +235,17 @@ for idx=1:(kCentralModel.Data.n)
         
 end    
 
-%% just testing flotsum rn 
+%% loop for consensus
 
-rr = sym_RStruct(10) ; 
+CONSENSUS_ITER = 10 ;
+C = zeros([CONSENSUS_ITER 1]) ;
 
-    modi = { rr, ...
+for idx=1:CONSENSUS_ITER
+
+    runNTimes = 100 ;
+    
+    rr = sym_RStruct(kBest) ;
+    modIn = { ... 
         'W_Distr', WEIGHT_DIST, ...
         'E_Distr', EDGE_DIST, ...
         'alpha', INIT_ALPHA, ...
@@ -195,16 +253,70 @@ rr = sym_RStruct(10) ;
         'muMaxIter' , LOOPER_MU_ITER,...
         'mainTol',0.01, ...
         'muTol', 0.01 ,...
-        'verbosity', 1   , ...
+        'verbosity', 0, ...
         'numTrials', 50 ,...
-        'mu_0',kiter_prior};
+        'mu_0', kiter_prior(:,:,idx)};
+    
+    % function [ allModels ] = wsbmFitNTimes( adjMat, rStruct , modelInputs , numFits , numCores)
+    cnsnsusModels = wsbmFitNTimes(kCentralModel.Data.Raw_Data,...
+        rr,...
+        modIn,...
+        runNTimes, 16) ;
+        
+    tmpCnsnsusCa = zeros([ kCentralModel.Data.n runNTimes ]) ;
+    
+    for jdx=1:runNTimes
+        [~,tmpCnsnsusCa(:,jdx)] = community_assign(cnsnsusModels(jdx).Model) ;
+    end
+   
+    tmpAgreeMat = agreement(tmpCnsnsusCa) ./ runNTimes ;
+    
+    % get the consensus consitency
+    C(idx) = consensus_consistency(tmpAgreeMat) ;
+    
+    % make new kiter_prior for new loop
+    for kdx=1:(kCentralModel.Data.n)
+
+        kiter_prior(:,kdx,idx+1) = ...
+            sum(bsxfun(@eq,tmpCnsnsusCa(kdx,:), ...
+            [1:(kCentralModel.R_Struct.k)]'),2) ./ cutoff ;
+        
+    end    
+    
+    % have we converged?
+    if C(idx) >= 0.95     
+        consensus_kiter_prior = kiter_prior(:,:,idx+1) ;
+        [~,consensus_ca] = community_assign(consensus_kiter_prior) ; 
+        consensus_kCentralModel = central_model(cnsnsusModels) ;
+        % also add the data back into consensus_kCentral...
+        consensus_kCentralModel.Data = kCentralModel.Data ;
+        break 
+    end
+    
+end
+
+%% just testing flotsum rn 
+
+rr = sym_RStruct(10) ; 
+
+modi = { rr, ...
+    'W_Distr', WEIGHT_DIST, ...
+    'E_Distr', EDGE_DIST, ...
+    'alpha', INIT_ALPHA, ...
+    'mainMaxIter', LOOPER_MAIN_ITER , ...
+    'muMaxIter' , LOOPER_MU_ITER,...
+    'mainTol',0.01, ...
+    'muTol', 0.01 ,...
+    'verbosity', 1   , ...
+    'numTrials', 50 ,...
+    'mu_0',kiter_prior};
 
 tmpResults = cell([10 1]) ;
 
 tic
 for idx=1:10
-[~,tmpResults{idx}] = wsbm(avgTemp, ... 
-    modi{:} ) ;  
+    [~,tmpResults{idx}] = wsbm(avgTemp, ... 
+        modi{:} ) ;  
 end
 toc
 
