@@ -62,8 +62,9 @@ end
     
 modules_lh = zeros(nVertices_lh,1);
 modules_rh = zeros(nVertices_rh,1);
-cmap_mod = cmap_spec(round(linspace(1,256,numModules)),:);    
-        
+%cmap_mod = cmap_spec(round(linspace(1,256,numModules)),:);   
+cmap_mod = brewermap(numModules,'paired') ;
+
 for parcelID=1:numParcels
 
     disp(parcelID)
