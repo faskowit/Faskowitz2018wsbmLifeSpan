@@ -1,6 +1,6 @@
 % regression workflow script
 
-load('workspaces/fit_wsbm_script_workspace.mat')
+%load('workspaces/fit_wsbm_script_workspace.mat')
 
 %% STEPS
 % 1) fit the template to brains, measure properites across
@@ -14,7 +14,6 @@ load('workspaces/fit_wsbm_script_workspace.mat')
 
 % add BCT path
 addpath('~/JOSHSTUFF/scripts/BCT/2017_01_15_BCT/')
-addpath('~/JOSHSTUFF/projects/SBM2/aux_stuff/')
 
 %% read in data
 % if we gonna use this script as a function 

@@ -61,7 +61,7 @@ mod_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % yeo communities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-load('aux_stuff/seven_network.mat')
+load('data/external/seven_network.mat')
 % add the temporal parietal to default mode
 mu_yeo7 = seven_network ;
 mu_yeo7(7,57) = 1 ;
@@ -80,7 +80,7 @@ fits = {'linear' 'quadratic' 'poisson' } ;
 numBlocks = templateModel.R_Struct.k ;
 
 % these get passed into regression func
-otherArgs = {1 500 [] 5000 };
+otherArgs = {1 500 [] 10000 };
 
 % predictor
 X = datasetDemo.age ;
@@ -88,26 +88,28 @@ X = datasetDemo.age ;
 % Y = rdens --> rdens in gather struct
 
 wsbm_rdens_statMat = run_regression_over_yMat(X,wsbm_gatherStruct.rdens,fits,otherArgs) ;
-mod_rdens_statMat = run_regression_over_yMat(X,mod_gatherStruct.rdens,fits,otherArgs) ;
-yeo_rdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdens,fits,otherArgs) ;
+%mod_rdens_statMat = run_regression_over_yMat(X,mod_gatherStruct.rdens,fits,otherArgs) ;
+%yeo_rdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdens,fits,otherArgs) ;
 
 %% STEP 2
 %figure out which model best based on RMSE
 
 % bonferoni threshold based on comparisons made in upper triangle
-bonf_limit = 0.05 / sum(sum(triu(ones(numBlocks)))) ;
+bonf_limit = 0.05 / ( sum(sum(triu(ones(numBlocks)))) * length(fits) ) ;
 
 %% regressions on wsbm rdens 
 
 statMapLookinAt = wsbm_rdens_statMat ;
 numBlocks = templateModel.R_Struct.k ;
 
+rdens_xValR2 = [] ;
 rdens_rmse = [] ;
 rdens_pval = [] ;
 rdens_r2 = [] ;
 
 for idx=1:length(fits)
 
+    rdens_xValR2(:,:,idx) =  get_frm_statMat(statMapLookinAt(:,:,idx),{'xvalR2'});
     rdens_rmse(:,:,idx) = get_frm_statMat(statMapLookinAt(:,:,idx),{'xvalRMSE'});
     rdens_pval(:,:,idx) = get_frm_statMat(statMapLookinAt(:,:,idx),{'permStruct' 'permPvalR2'});
     rdens_r2(:,:,idx) = get_frm_statMat(statMapLookinAt(:,:,idx),{'lsFitStruct' 'R2'});
