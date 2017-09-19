@@ -184,6 +184,14 @@ landRsubset = landR(:,{'ICV' 'SupraTentorial' 'SupraTentorialNotVent'...
 
 demographicsRaw = join(demographicsRaw , landRsubset, 'Keys', 'RowNames') ;
 
+%% add movement
+
+moveTable = readtable(strcat(rawDataDir,'/movement.csv'));
+moveTable.subj = strrep(moveTable.subj,'sub-','') ;
+moveTable.Properties.RowNames = moveTable.subj ; 
+
+demographicsRaw = join(demographicsRaw , moveTable(:,'movement'),'Keys','RowNames');
+
 %% package it all up
 % to return from function 
 

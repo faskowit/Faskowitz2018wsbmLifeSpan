@@ -101,6 +101,8 @@ bdens = zeros([numBlocks numBlocks nSubj]) ;
 denseb = zeros([numBlocks numBlocks nSubj]) ;
 rdens = zeros([numBlocks numBlocks nSubj]) ;
 rdenseb = zeros([numBlocks numBlocks nSubj]) ;
+rmdens = zeros([numBlocks numBlocks nSubj]) ;
+rmdenseb = zeros([numBlocks numBlocks nSubj]) ;
 
 for idx=1:numBlocks
     for jdx=1:numBlocks
@@ -137,6 +139,16 @@ for idx=1:numBlocks
         [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
         rdenseb(idx,jdx,:) = res;
         
+        % density with covariates + movement
+        [ ~ , ~ , res] = regress(squeeze(dens(idx,jdx,:)), ...
+            [ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity datasetDemo.movement]);
+        rmdens(idx,jdx,:) = res;
+        
+        % eb with covariates + movement
+        [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),...
+            [ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity datasetDemo.movement]);
+        rmdenseb(idx,jdx,:) = res;
+        
     end;
 end;
 
@@ -147,6 +159,9 @@ gatherStruct.dens = dens ;
 gatherStruct.rdens = rdens ;
 gatherStruct.denseb = denseb ; 
 gatherStruct.rdenseb = rdenseb ;
+
+gatherStruct.rmdens = rmdens ;
+gatherStruct.rmdenseb = rmdenseb ;
 
 % subjMats in a mat array
 gatherStruct.subjMatsArray = subjMatsArray ;
