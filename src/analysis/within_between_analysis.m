@@ -28,3 +28,13 @@ for idx=1:nSubj
 
     end
 end
+
+
+%%
+[~,ageSort] = sort(datasetDemo.age) ;
+figure; imagesc(between_strength(:,ageSort))
+
+figure; scatter(datasetDemo.age,between_strength(6,ageSort));
+
+
+
