@@ -1,4 +1,4 @@
-function [ maxAssorVec , nodMaxAssorVec ] = eval_com_assortatvity_wu(CIJ,ca) 
+function [ comMaxAssorVec , nodMaxAssorVec ] = eval_com_assortatvity_wu(CIJ,ca) 
 % return the maximum assortativity from Betzel
 % https://arxiv.org/pdf/1702.02807.pdf
 
@@ -21,7 +21,7 @@ comMat = zeros(num_coms) ;
 sizeMat = zeros(num_coms) ;
 
 % initialize output vecs
-maxAssorVec = zeros([ num_coms 1]);
+comMaxAssorVec = zeros([ num_coms 1]);
 nodMaxAssorVec = zeros([ num_nodes 1]);
 
 % community indicies
@@ -49,7 +49,7 @@ for idx=1:num_coms
     maxBetwn = max(betwn);   
     within = comMat(idx,idx) ./ sizeMat(idx,idx);
     
-    maxAssorVec(idx) = within - maxBetwn ;
+    comMaxAssorVec(idx) = within - maxBetwn ;
     
 end
 
