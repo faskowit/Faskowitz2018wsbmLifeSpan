@@ -50,10 +50,35 @@ wsbm_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
 
 % modularity matching num blocks %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [ ~ , modResults ] = compute_mod(templateModel,1.0) ;
+
 idx = max(modResults(2:end,:)) == templateModel.R_Struct.k ;
 modResultsSubS = modResults(:,idx) ;
-[ ~ , idx ] = max(modResults(1,idx)) ; 
-ca_mod = [ (1:(size(modResults,1)-1))' modResultsSubS(2:end,idx) ] ;
+
+% lets loop over the results to find the modular parition that is least
+% distant from the WSBM parition-- for a fair comparison. 
+modDist2Wsbm = zeros([ size(modResultsSubS,2) 1 ]);
+for idx=1:size(modResultsSubS,2)
+    
+    modDist2Wsbm(idx) = partition_distance(ca_wsbm(:,2), ...
+        modResultsSubS(2:end,idx));
+    
+end
+
+[ ~ , minIdx ] = min(modDist2Wsbm) ; 
+
+% sanity check
+% for idx=2:size(modResultsSubS,2)
+%    
+%     modResultsSubS(:,idx) = CBIG_HungarianClusterMatch(modResultsSubS(:,1),...
+%         modResultsSubS(:,idx));
+% end
+
+% [ ~ , idx ] = max(modResults(1,idx)) ; 
+
+% align labels
+ca_mod = modResultsSubS(2:end,minIdx) ;
+ca_mod = CBIG_HungarianClusterMatch(ca_wsbm(:,2),ca_mod);
+ca_mod = [ (1:(size(modResults,1)-1))' ca_mod ] ;
 
 mod_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
     ca_mod(:,2), selectNodesFrmRaw, 0, 1, 'countVolNormMat');
@@ -67,6 +92,11 @@ mu_yeo7 = seven_network ;
 mu_yeo7(7,57) = 1 ;
 mu_yeo7(7,114) = 1 ;
 ca_yeo = community_assign(mu_yeo7);
+
+% nope
+% % align labels
+%ca_yeo(:,2) = CBIG_HungarianClusterMatch(ca_wsbm(:,2),ca_yeo(:,2));
+
 yeo_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
     ca_yeo(:,2), selectNodesFrmRaw, 0, 1, 'countVolNormMat');
 
@@ -88,8 +118,23 @@ X = datasetDemo.age ;
 % Y = rdens --> rdens in gather struct
 
 wsbm_rdens_statMat = run_regression_over_yMat(X,wsbm_gatherStruct.rdens,fits,otherArgs) ;
-%mod_rdens_statMat = run_regression_over_yMat(X,mod_gatherStruct.rdens,fits,otherArgs) ;
-%yeo_rdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdens,fits,otherArgs) ;
+mod_rdens_statMat = run_regression_over_yMat(X,mod_gatherStruct.rdens,fits,otherArgs) ;
+yeo_rdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdens,fits,otherArgs) ;
+
+outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_statMat_v7p3.mat');
+save(outName,...
+    'wsbm_rdens_statMat',...
+    'mod_rdens_statMat',...
+    'yeo_rdens_statMat',...
+    'wsbm_gatherStruct',...
+    'mod_gatherStruct',...
+    'yeo_gatherStruct',...
+    'templateModel',...
+    'datasetDemo',...
+    'dataStruct',...
+    'ca_wsbm','ca_mod','ca_yeo',...
+    'templateModel',...
+    '-v7.3')
 
 %% STEP 2
 %figure out which model best based on RMSE
