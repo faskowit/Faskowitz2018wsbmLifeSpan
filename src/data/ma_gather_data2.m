@@ -100,8 +100,10 @@ dens = zeros([numBlocks numBlocks nSubj]) ;
 bdens = zeros([numBlocks numBlocks nSubj]) ;
 denseb = zeros([numBlocks numBlocks nSubj]) ;
 rdens = zeros([numBlocks numBlocks nSubj]) ;
+rbdens = zeros([numBlocks numBlocks nSubj]) ;
 rdenseb = zeros([numBlocks numBlocks nSubj]) ;
 rmdens = zeros([numBlocks numBlocks nSubj]) ;
+rmbdens = zeros([numBlocks numBlocks nSubj]) ;
 rmdenseb = zeros([numBlocks numBlocks nSubj]) ;
 
 for idx=1:numBlocks
@@ -135,6 +137,10 @@ for idx=1:numBlocks
         [ ~ , ~ , res] = regress(squeeze(dens(idx,jdx,:)),[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
         rdens(idx,jdx,:) = res;
         
+        % binary density with covariates
+        [ ~ , ~ , res] = regress(squeeze(bdens(idx,jdx,:)),[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
+        rbdens(idx,jdx,:) = res;
+        
         % eb with covariates 
         [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
         rdenseb(idx,jdx,:) = res;
@@ -143,6 +149,11 @@ for idx=1:numBlocks
         [ ~ , ~ , res] = regress(squeeze(dens(idx,jdx,:)), ...
             [ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity datasetDemo.movement]);
         rmdens(idx,jdx,:) = res;
+        
+        % binary density with covariates + movement
+        [ ~ , ~ , res] = regress(squeeze(bdens(idx,jdx,:)), ...
+            [ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity datasetDemo.movement]);
+        rmbdens(idx,jdx,:) = res;
         
         % eb with covariates + movement
         [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),...
@@ -157,11 +168,13 @@ end;
 % wsmb
 gatherStruct.dens = dens ;
 gatherStruct.rdens = rdens ;
+gatherStruct.rbdens = rbdens ;
 gatherStruct.denseb = denseb ; 
 gatherStruct.rdenseb = rdenseb ;
 
 gatherStruct.rmdens = rmdens ;
 gatherStruct.rmdenseb = rmdenseb ;
+gatherStruct.rmbdens = rmbdens ;
 
 % subjMats in a mat array
 gatherStruct.subjMatsArray = subjMatsArray ;

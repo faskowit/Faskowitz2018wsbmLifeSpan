@@ -2,7 +2,7 @@
 
 % need to edit config file string to match what you want!!
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -43,7 +43,11 @@ datasetDemo = readData.demoRaw ;
 % condition the data based on exclusion criteria
 
 nSubj = length(dataStruct) ;
-sparse_cutoff = 0.25 ;
+%sparse_cutoff = 0.25 ;
+sparse_cutoff = 0.15 ;
+
+sparseness = zeros([length(dataStruct) 1]) ;
+
 removeVec = zeros( [nSubj 1] );
 
 for idx=1:nSubj
@@ -52,9 +56,10 @@ for idx=1:nSubj
     dataStruct(idx).countVolNormMat(selectNodesFrmRaw, ...
     selectNodesFrmRaw ) ;
     
-    sparseness = density_und(tmpSubjMat);
+    sparseness(idx) = density_und(tmpSubjMat);
+    %disp(sparseness)
     
-    if sparseness < sparse_cutoff
+    if sparseness(idx) < sparse_cutoff
        
         removeVec(idx) = 1 ;
     end
