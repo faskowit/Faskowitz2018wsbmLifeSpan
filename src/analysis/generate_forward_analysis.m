@@ -59,6 +59,31 @@ for idx=1:numPerms
     
 end
 
+%% try out the evalWSBM code
+
+templateSubj_data = dataStruct(datasetDemo.age > 25 & datasetDemo.age <= 35) ;
+[~,~,avgTemp_dist] = make_template_mat(templateSubj_data, ...
+    LEFT_HEMI_NODES, ...
+    RIGHT_HEMI_NODES, ...
+    MASK_THR_INIT) ; 
+
+% actually replace the 0's with NaN
+%avgTemp(avgTemp == 0) = NaN ;
+avgTemp_dist = avgTemp_dist(selectNodesFrmRaw,selectNodesFrmRaw);
+% clear diagonal
+avgTemp_dist(1:nNodes+1:end)=0; 
+
+%% 
+
+% function [B,E,K] = eval_genWsbm_model(wsbmModel,D,numSims)]
+%           B,          n x n x numSims matrix of synthetic networks
+%           E,          energy for each synthetic network
+%           K,          Kolmogorov-Smirnov statistics for each synthetic
+%                       network.
+[evalB,evalE,evalK] = eval_genWsbm_model(templateModel,avgTemp_dist,100);
+
+
+[evalMODB,evalMODE,evalMODK] = eval_genWsbm_model(modularityModel,avgTemp_dist,100);
 
 
 
