@@ -25,6 +25,9 @@ edgeList = generateEdges_nonNeg(...
 
 genMat = Edg2Adj(edgeList) ;
 
+% symmetrize the genMat
+genMat = triu(genMat) + triu(genMat,1)';
+
 if nargout > 1
     noNaGenMat =  genMat ;
     noNaGenMat(~~isnan(genMat)) = 0 ;
