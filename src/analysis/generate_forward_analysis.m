@@ -34,10 +34,24 @@ numPerms = 1000 ;
 nNodes = templateModel.Data.n ;
 
 % save some results
-% permsQ = zeros([ numPerms 1 ]);
-% permsCCoef = zeros([ numPerms 1 ]);
+permsWSBMQ = zeros([ numPerms 1 ]);
+permsWSBMCCoef = zeros([ numPerms 1 ]);
 permsWSBMAssort = zeros([ numPerms 1 ]);
+permsWSBMParti = zeros([ numPerms 1 ]);
+
+permsMODQ = zeros([ numPerms 1 ]);
+permsMODCCoef = zeros([ numPerms 1 ]);
 permsMODAssort = zeros([ numPerms 1 ]); 
+permsMODParti = zeros([ numPerms 1 ]); 
+
+permsRANDQ = zeros([ numPerms 1 ]);
+permsRANDCCoef = zeros([ numPerms 1 ]);
+permsRANDAssort = zeros([ numPerms 1 ]); 
+permsRANDParti = zeros([ numPerms 1 ]); 
+
+% two community defs for running modularity
+[~,ca1] = community_assign(templateModel);
+[~,ca2] = community_assign(modularityModel);
 
 for idx=1:numPerms
    
@@ -46,16 +60,48 @@ for idx=1:numPerms
     [~,tmpAdj] = genAdj_wsbm(templateModel);
     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
     
-    %permsQ(idx) = eval_modularity_wu(tmpAdj) ;
-    %permsCCoef(idx) = clustering_coef_wu(tmpAdj) ;
+    permsWSBMQ(idx) = eval_modularity_wu(tmpAdj,ca1) ;
+    permsWSBMCCoef(idx) = median(clustering_coef_wu(tmpAdj)) ;
     permsWSBMAssort(idx) = assortativity_wei(tmpAdj,0) ;
+    permsWSBMParti(idx) = median(participation_coef(tmpAdj,ca1));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    [~,tmpAdj] = genAdj_wsbm(modularityModel);
+%     [~,tmpAdj] = genAdj_wsbm(modularityModel);
+%     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
+%     
+%     permsMODQ(idx) = eval_modularity_wu(tmpAdj,ca2) ;
+%     permsMODCCoef(idx) = median(clustering_coef_wu(tmpAdj)) ;
+%     permsMODAssort(idx) = assortativity_wei(tmpAdj,0) ;
+%     permsMODParti(idx) = median(participation_coef(tmpAdj,ca2));
+
+    %randomize template
+    rMod = randomize_wsbm_para(templateModel,3);
+    [~,tmpAdj] = genAdj_wsbm(rMod);
     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
     
-    permsMODAssort(idx) = assortativity_wei(tmpAdj,0) ;
+    permsRANDQ(idx) = eval_modularity_wu(tmpAdj,ca1) ;
+    permsRANDCCoef(idx) = median(clustering_coef_wu(tmpAdj)) ;
+    permsRANDAssort(idx) = assortativity_wei(tmpAdj,0) ;
+    permsRANDParti(idx) = median(participation_coef(tmpAdj,ca1));
+    
+end
+
+%% empirical yo
+
+empQ = eval_modularity_wu(templateAdj,comVecs.yeo) ;
+empCCoef = median(clustering_coef_wu(templateAdj)) ;
+empAssort = assortativity_wei(templateAdj,0) ;
+empParti = median(participation_coef(templateAdj,comVecs.wsbm));
+
+%%
+
+assortVec = zeros([nSubj 1]);
+
+for idx=1:nSubj
+   
+    assortVec(idx) = assortativity_bin(wsbm_gatherStruct.subjMatsArray(:,:,idx),0);
+    
     
 end
 
@@ -80,10 +126,16 @@ avgTemp_dist(1:nNodes+1:end)=0;
 %           E,          energy for each synthetic network
 %           K,          Kolmogorov-Smirnov statistics for each synthetic
 %                       network.
-[evalB,evalE,evalK] = eval_genWsbm_model(templateModel,avgTemp_dist,100);
+[evalB,evalE,evalK] = eval_genWsbm_model(templateModel,avgTemp_dist,500);
 
 
-[evalMODB,evalMODE,evalMODK] = eval_genWsbm_model(modularityModel,avgTemp_dist,100);
+[evalMODB,evalMODE,evalMODK] = eval_genWsbm_model(modularityModel,avgTemp_dist,500);
+
+%% 
+
+histogram(evalE); hold ;histogram(evalMODE)
+
+
 
 
 
