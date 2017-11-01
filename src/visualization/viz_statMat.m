@@ -70,5 +70,5 @@ if ~isempty(plot_title)
     title(plot_title)
 end
 
-set(gca,'XTick',1:9,...                         %# Change the axes tick mark
-        'YTick',1:9)
+set(gca,'XTick',1:(size(mat,1)),...                         %# Change the axes tick mark
+        'YTick',1:(size(mat,1)))
