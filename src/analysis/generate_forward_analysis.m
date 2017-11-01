@@ -1,3 +1,9 @@
+%% clear stuff
+
+clc
+clearvars
+
+%% load the necessary data
 %% lets analyze the age bin scripts
 
 addpath('~/JOSHSTUFF/scripts/BCT/2017_01_15_BCT/')
@@ -9,6 +15,10 @@ run(config_file);
 
 % load the data we need to analyze this ish. 
 loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_fit_wsbm_script_v7p3.mat');
+load(loadName) ;
+
+% load the data we need to analyze this ish. 
+loadName = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR, '_comVecs.mat');
 load(loadName) ;
 
 %% actual data
@@ -29,7 +39,7 @@ muMod = dummyvar(comVecs.mod)' ;
 
 %%
 
-numPerms = 1000 ;
+numPerms = 100 ;
 
 nNodes = templateModel.Data.n ;
 
@@ -59,10 +69,11 @@ for idx=1:numPerms
     
     [~,tmpAdj] = genAdj_wsbm(templateModel);
     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
+    tmpAdj = tmpAdj ~= 0;
     
     permsWSBMQ(idx) = eval_modularity_wu(tmpAdj,ca1) ;
-    permsWSBMCCoef(idx) = median(clustering_coef_wu(tmpAdj)) ;
-    permsWSBMAssort(idx) = assortativity_wei(tmpAdj,0) ;
+    permsWSBMCCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
+    permsWSBMAssort(idx) = assortativity_bin(tmpAdj,0) ;
     permsWSBMParti(idx) = median(participation_coef(tmpAdj,ca1));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,28 +82,39 @@ for idx=1:numPerms
 %     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
 %     
 %     permsMODQ(idx) = eval_modularity_wu(tmpAdj,ca2) ;
-%     permsMODCCoef(idx) = median(clustering_coef_wu(tmpAdj)) ;
-%     permsMODAssort(idx) = assortativity_wei(tmpAdj,0) ;
+%     permsMODCCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
+%     permsMODAssort(idx) = assortativity_bin(tmpAdj,0) ;
 %     permsMODParti(idx) = median(participation_coef(tmpAdj,ca2));
 
     %randomize template
     rMod = randomize_wsbm_para(templateModel,3);
     [~,tmpAdj] = genAdj_wsbm(rMod);
     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
+    tmpAdj = tmpAdj ~= 0;
     
     permsRANDQ(idx) = eval_modularity_wu(tmpAdj,ca1) ;
-    permsRANDCCoef(idx) = median(clustering_coef_wu(tmpAdj)) ;
-    permsRANDAssort(idx) = assortativity_wei(tmpAdj,0) ;
+    permsRANDCCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
+    permsRANDAssort(idx) = assortativity_bin(tmpAdj,0) ;
     permsRANDParti(idx) = median(participation_coef(tmpAdj,ca1));
     
 end
 
 %% empirical yo
 
-empQ = eval_modularity_wu(templateAdj,comVecs.yeo) ;
-empCCoef = median(clustering_coef_wu(templateAdj)) ;
-empAssort = assortativity_wei(templateAdj,0) ;
-empParti = median(participation_coef(templateAdj,comVecs.wsbm));
+tempBinData = templateAdj;
+tempBinData = tempBinData ~= 0 ;
+
+empQ = eval_modularity_wu(tempBinData,comVecs.yeo) ;
+empCCoef = median(clustering_coef_bu(tempBinData)) ;
+empAssort = assortativity_bin(tempBinData,0) ;
+empParti = median(participation_coef(tempBinData,comVecs.wsbm));
+
+%%
+
+histogram(permsWSBMParti)
+hold
+histogram(permsRANDParti)
+
 
 %%
 
@@ -107,8 +129,10 @@ end
 
 %% try out the evalWSBM code
 
+nNodes = templateModel.Data.n ;
+
 templateSubj_data = dataStruct(datasetDemo.age > 25 & datasetDemo.age <= 35) ;
-[~,~,avgTemp_dist] = make_template_mat(templateSubj_data, ...
+[a,b,avgTemp_dist] = make_template_mat(templateSubj_data, ...
     LEFT_HEMI_NODES, ...
     RIGHT_HEMI_NODES, ...
     MASK_THR_INIT) ; 
@@ -126,14 +150,15 @@ avgTemp_dist(1:nNodes+1:end)=0;
 %           E,          energy for each synthetic network
 %           K,          Kolmogorov-Smirnov statistics for each synthetic
 %                       network.
-[evalB,evalE,evalK] = eval_genWsbm_model(templateModel,avgTemp_dist,500);
-
-
-[evalMODB,evalMODE,evalMODK] = eval_genWsbm_model(modularityModel,avgTemp_dist,500);
+[evalB,evalE,evalK] = eval_genWsbm_model1(templateModel,avgTemp_dist,1000);
+[evalMODB,evalMODE,evalMODK] = eval_genWsbm_model1(modularityModel,avgTemp_dist,1000);
 
 %% 
 
-histogram(evalE); hold ;histogram(evalMODE)
+histogram(evalE,'normalization','probability') 
+hold 
+histogram(evalMODE,'normalization','probability')
+legend('WSBM model','Modularity model')
 
 
 

@@ -1,4 +1,4 @@
-function [B,E,K] = eval_genWsbm_model(wsbmModel,D,numSims)
+function [B,E,K] = eval_genWsbm_model1(wsbmModel,D,numSims)
 % EVAL_GENWSBM_MODEL     Generation and evaluation of synthetic networks
 %
 %   [B,E,K] = EVALUATE_GENERATIVE_MODEL(A,Atgt,D,m,modeltype,modelvar,params) 
@@ -40,13 +40,15 @@ Atgt(~~isnan(Atgt)) = 0 ;
 %remove diagonal to be safe
 nNodes = size(Atgt,1) ;
 Atgt(1:nNodes+1:end)=0; 
+Atgt = single(Atgt~=0);
 
 % emperical stats
 x = cell(4,1);
-x{1} = sum(single(triu(Atgt,1) > 0),2);
-x{2} = local_assortativity_wu_sign(Atgt);
-%x{3} = eigenvector_centrality_und(Atgt);
-x{3} = betweenness_bin(single(triu(Atgt,1) > 0))';
+x{1} = sum(triu(Atgt,1),2);
+%x{2} = mean(matching_ind_und(Atgt))';
+%x{2} = clustering_coef_bu(Atgt);
+x{2} = eigenvector_centrality_und(Atgt);
+x{3} = betweenness_bin(Atgt)';
 x{4} = D(triu(Atgt,1) > 0);
 
 % record K-S stats
@@ -59,12 +61,18 @@ for idx = 1:numSims
     
     % recover the no-NaN output
     [~,b] = genAdj_wsbm(wsbmModel) ;
+    % remove NaNs
+    b(isnan(b)) = 0 ;
+    b=single(b~=0);         % binarize
+    
     B(:,:,idx) = b ;
     
     y = cell(4,1);
-    y{1} = sum(b,2);
-    y{2} = local_assortativity_wu_sign(b); 
-    y{3} = betweenness_bin(single(triu(b,1) > 0))';
+    y{1} = sum(triu(b,1),2);
+    %y{2} = mean(matching_ind_und(b))'; 
+    %y{2} = clustering_coef_bu(b);
+    y{2} = eigenvector_centrality_und(b);
+    y{3} = betweenness_bin(b)';
     %y{3} = eigenvector_centrality_und(b); 
     y{4} = D(triu(b,1) > 0);
     for j = 1:4
