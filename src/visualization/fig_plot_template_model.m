@@ -88,6 +88,7 @@ axis square
 
 hold off;
 
+
 %% 
 
 fileName = 'templateModel_adj_mat.png';

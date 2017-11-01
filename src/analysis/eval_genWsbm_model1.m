@@ -43,7 +43,7 @@ Atgt(1:nNodes+1:end)=0;
 
 % emperical stats
 x = cell(4,1);
-x{1} = sum(Atgt,2);
+x{1} = sum(single(triu(Atgt,1) > 0),2);
 x{2} = local_assortativity_wu_sign(Atgt);
 %x{3} = eigenvector_centrality_und(Atgt);
 x{3} = betweenness_bin(single(triu(Atgt,1) > 0))';
