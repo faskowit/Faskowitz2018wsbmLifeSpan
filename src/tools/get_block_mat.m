@@ -1,8 +1,10 @@
 function [sumBlockMat,avgBlockMat,binBlockMat] = get_block_mat(CIJ,ca)
 % given an adjacency matrix, return a block matrix 
 
-% make sure ca is column
-ca = ca(:);
+% make ca column vec
+if ~iscolumn(ca)
+   ca = ca'; 
+end
 
 % number coms
 nBlocks = length(unique(ca));
