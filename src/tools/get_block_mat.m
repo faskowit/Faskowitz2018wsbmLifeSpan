@@ -1,5 +1,13 @@
-function [sumBlockMat,avgBlockMat,binBlockMat] = get_block_mat(CIJ,ca)
-% given an adjacency matrix, return a block matrix 
+function [weiBM,avgWeiBM,binBM,avgBinBM,stdWeiBM] = get_block_mat(CIJ,ca)
+% given an adjacency matrix + community affiliations, return a block matrix
+% returns: 
+%           weighted block matrix
+%           average weighted block matrix
+%           binary block matrix
+%           average binary block matrix
+%           std weights block matrix 
+%
+% Josh Faskowtiz IU
 
 % make ca column vec
 if ~iscolumn(ca)
@@ -20,9 +28,11 @@ sizesMat = bsxfun(@times,...
     blockSizes');
 
 % initialize outputs
-sumBlockMat = zeros([nBlocks nBlocks]);
-avgBlockMat = zeros([nBlocks nBlocks]);
-binBlockMat = zeros([nBlocks nBlocks]);
+weiBM = zeros([nBlocks nBlocks]);
+avgWeiBM = zeros([nBlocks nBlocks]);
+binBM = zeros([nBlocks nBlocks]);
+avgBinBM = zeros([nBlocks nBlocks]);
+stdWeiBM = zeros([nBlocks nBlocks]);
 
 % now loop it
 for idx = 1:nBlocks % rows
@@ -30,10 +40,12 @@ for idx = 1:nBlocks % rows
 
         tmp = CIJ(ca == orderedBlocks(idx),ca == orderedBlocks(jdx));
          
-        sumBlockMat(idx,jdx) = nansum(tmp(:));
-        avgBlockMat(idx,jdx) = nansum(tmp(:)) ./ sizesMat(idx,jdx);
-        binBlockMat(idx,jdx) = nansum(tmp(:) > 0);
-              
+        weiBM(idx,jdx) = nansum(tmp(:));
+        avgWeiBM(idx,jdx) = nansum(tmp(:)) ./ sizesMat(idx,jdx);
+        binBM(idx,jdx) = nansum(tmp(:) > 0);
+        avgBinBM(idx,jdx) = nansum(tmp(:) > 0) ./ sizesMat(idx,jdx);
+        stdWeiBM(idx,jdx) = nanstd(tmp(:)) ;
+         
     end
 end
 
