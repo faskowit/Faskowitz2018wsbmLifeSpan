@@ -1,30 +1,34 @@
-function [ communityLabels_mod , modResults ] = compute_mod( templateModel , gammaVal )
+function [ sweepResults ] = compute_mod_sweepG( inputData , gammaRange )
 % compute modularity here...
 
 if nargin < 2
-    gammaVal = 1 ;
+    gammaRange = 0.5:0.01:4.0 ;
 end
 
 %% data
 % adjacency mat
-M = templateModel.Data.Raw_Data ;
+if isstruct(inputData)
+    M = inputData.Data.Raw_Data ;
+else
+    M = inputData ;
+end
+
 M(isnan(M)) = 0;
 N = size(M,1);
-R = 100;
+R = 2;
 
 % prealocate 
 ci_r = zeros(N,R);
 q_r = zeros(1,R);
 
-gamvals = 0.5:0.01:4.0 ;
-lg = length(gamvals);
+lg = length(gammaRange);
 
 %% run stuff
 
 % loop over gamma vals
 for g=1:lg
-    disp(num2str(g));
-    gam = gamvals(g);
+    %disp(num2str(g));
+    gam = gammaRange(g);
     for r=1:R
         [ci_r(:,r) , q_r(r)] = modularity_und(M,gam);
     end;
@@ -35,32 +39,32 @@ for g=1:lg
     ci_g(:,g) = ci_r(:,ff);
 end;
 
-% plot number of modules across gamma range
-figure
-plot(max(ci_g));
+% % plot number of modules across gamma range
+% figure
+% plot(max(ci_g));
 
-% get stability
-VI = zeros(lg,lg); MI = zeros(lg,lg);
-for i=1:lg
-    for j=1:lg
-        [VI(i,j) , MI(i,j)] = partition_distance(ci_g(:,i),ci_g(:,j));
-    end;
-end;
+% % get stability
+% VI = zeros(lg,lg); MI = zeros(lg,lg);
+% for i=1:lg
+%     for j=1:lg
+%         [VI(i,j) , MI(i,j)] = partition_distance(ci_g(:,i),ci_g(:,j));
+%     end;
+% end;
 
 % % plot the VI across all gamma levels - blue patches are "islands of stable
 % % solutions" - use this to select interesting levels of gamma
 % figure('position',[50 50 800 800]);
 % imagesc(VI);
 
-% compare to SBM output
-[~ , jj] = max(templateModel.Para.mu);
-SBM = jj';  % not sure this is correct - what I want is the block assignment vector
-for i=1:lg
-    [VI_SBM(:,i) , MI_SBM(:,i)] = partition_distance(ci_g(:,i),SBM);
-end;
-% % plot MI of ci(gamma) versus SBM
-% figure
-% plot(VI_SBM);
+% % compare to SBM output
+% [~ , jj] = max(templateModel.Para.mu);
+% SBM = jj';  % not sure this is correct - what I want is the block assignment vector
+% for i=1:lg
+%     [VI_SBM(:,i) , MI_SBM(:,i)] = partition_distance(ci_g(:,i),SBM);
+% end;
+% % % plot MI of ci(gamma) versus SBM
+% % figure
+% % plot(VI_SBM);
 
 % %% pick one gamma val to display
 % 
@@ -71,9 +75,9 @@ end;
 %    disp('bad gamma val provided')
 %    return
 % end
-CI = ci_g(:,g_display);
-nummod = max(CI);
-[~ , bb] = sort(CI);
+% CI = ci_g(:,g_display);
+% nummod = max(CI);
+% [~ , bb] = sort(CI);
 
 % % display modules
 % figure('position',[100 50 800 800]);
@@ -88,10 +92,10 @@ nummod = max(CI);
 %% return the modular communities...
 % repends on gamma choice for now
 
-numNodes = size(templateModel.Para.mu,2) ;
-communityLabels_mod = [ (1:numNodes)' CI ] ;
+% numNodes = size(inputData.Para.mu,2) ;
+% communityLabels_mod = [ (1:numNodes)' CI ] ;
 
 % return mod sweep results
 % make top row modularity coeffs
-modResults = vertcat( q_g , ci_g ) ;
+sweepResults = vertcat( q_g , ci_g ) ;
 
