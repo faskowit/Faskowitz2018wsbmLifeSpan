@@ -1,4 +1,4 @@
-function [ templateMatBothHemi , meanLens , meanCoorMM ] = make_template_mat(dataStruct, leftNodes, rightNodes, initThresh)
+function [ templateMatBothHemi , meanLens , meanCoorMM, meanCountMat ] = make_template_mat(dataStruct, leftNodes, rightNodes, initThresh)
 %% make average mat, and return it
 % we will use function that preserves mat lengths
 % therefore this function needs the additional function: fcn_group_average
@@ -33,42 +33,50 @@ meanLens = mean(arrayLens,3) ;
 % pre-allocate the matrix to store subject-level mats
 sizeAllNodes = length(selectNodes) ;
 arrayWeightMats = zeros(sizeAllNodes, sizeAllNodes, length(dataStruct)) ;
+arrayRawCountMats = zeros(sizeAllNodes, sizeAllNodes, length(dataStruct)) ;
 
 for idx=1:length(dataStruct)
            
-    temp = dataStruct(idx).countVolNormMat(selectNodes,selectNodes) ;
+    tmp = dataStruct(idx).countVolNormMat(selectNodes,selectNodes) ;
     
     %get size of square mat
-    n=size(temp,1);
+    n=size(tmp,1);
     %make zero across diagonal
-    temp(1:n+1:end) = 0;
+    tmp(1:n+1:end) = 0;
     
     %make a mask based on thresh
     temp_mask = dataStruct(idx).countMat(selectNodes,selectNodes) > initThresh ;    
     temp_mask(temp_mask > 0) = 1 ;
     
     % threshold temp matrix by mask
-    temp = temp .* temp_mask ;
-    arrayWeightMats(:,:,idx) = temp ;
+    tmp = tmp .* temp_mask ;
+    arrayWeightMats(:,:,idx) = tmp ;
+    
+    arrayRawCountMats(:,:,idx) = dataStruct(idx).countMat(selectNodes,selectNodes) ...
+        .* temp_mask;
     
 end
 
 % make the lh rh membership mat
 hemi_id = ones(sizeAllNodes,1);
-temp = length(leftNodes) + 1 ; 
-hemi_id(temp:end) = 2 ;
+tmp = length(leftNodes) + 1 ; 
+hemi_id(tmp:end) = 2 ;
 
 % using mean lengths here
 template_mask = fcn_group_average(arrayWeightMats, ...
     meanLens(selectNodes,selectNodes), ...
     hemi_id) ; 
 
+% get number of edge existences
 numEdg = sum(arrayWeightMats>0, 3);
+
 avrWei = sum(arrayWeightMats, 3)./ numEdg;
 avrWei(numEdg == 0) = 0;  % remove NANs
 
 %mask the avrWei mat by the threshold mat
 templateMatBothHemi = avrWei .* template_mask ;
 
-
+%also return count mat 
+meanCountMat = (sum(arrayRawCountMats,3) ./numEdg) .* template_mask ;
+meanCountMat(numEdg == 0) = 0;
 

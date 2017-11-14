@@ -47,10 +47,10 @@ for i=1:lg
     end;
 end;
 
-% plot the VI across all gamma levels - blue patches are "islands of stable
-% solutions" - use this to select interesting levels of gamma
-figure('position',[50 50 800 800]);
-imagesc(VI);
+% % plot the VI across all gamma levels - blue patches are "islands of stable
+% % solutions" - use this to select interesting levels of gamma
+% figure('position',[50 50 800 800]);
+% imagesc(VI);
 
 % compare to SBM output
 [~ , jj] = max(templateModel.Para.mu);
@@ -58,32 +58,32 @@ SBM = jj';  % not sure this is correct - what I want is the block assignment vec
 for i=1:lg
     [VI_SBM(:,i) , MI_SBM(:,i)] = partition_distance(ci_g(:,i),SBM);
 end;
-% plot MI of ci(gamma) versus SBM
-figure
-plot(VI_SBM);
+% % plot MI of ci(gamma) versus SBM
+% figure
+% plot(VI_SBM);
 
-%% pick one gamma val to display
-
-% display matrix
-% pick the gamma val provided... or use default 1, set up top
-g_display = find(gamvals == gammaVal) ;
-if isempty(g_display)
-   disp('bad gamma val provided')
-   return
-end
+% %% pick one gamma val to display
+% 
+% % display matrix
+% % pick the gamma val provided... or use default 1, set up top
+% g_display = find(gamvals == gammaVal) ;
+% if isempty(g_display)
+%    disp('bad gamma val provided')
+%    return
+% end
 CI = ci_g(:,g_display);
 nummod = max(CI);
 [~ , bb] = sort(CI);
 
-% display modules
-figure('position',[100 50 800 800]);
-imagesc(log(M(bb,bb)));         % log scale!
-mod_boundaries = find(abs(diff(CI(bb)))>0);
-for i=1:nummod-1
-    ll = line([mod_boundaries(i)+0.5 mod_boundaries(i)+0.5],[0.5 N+0.5]); set(ll,'Color',[1 1 1],'LineWidth',1);
-    ll = line([0.5 N+0.5],[mod_boundaries(i)+0.5 mod_boundaries(i)+0.5]); set(ll,'Color',[1 1 1],'LineWidth',1);
-end;
-colormap(jet); axis square;
+% % display modules
+% figure('position',[100 50 800 800]);
+% imagesc(log(M(bb,bb)));         % log scale!
+% mod_boundaries = find(abs(diff(CI(bb)))>0);
+% for i=1:nummod-1
+%     ll = line([mod_boundaries(i)+0.5 mod_boundaries(i)+0.5],[0.5 N+0.5]); set(ll,'Color',[1 1 1],'LineWidth',1);
+%     ll = line([0.5 N+0.5],[mod_boundaries(i)+0.5 mod_boundaries(i)+0.5]); set(ll,'Color',[1 1 1],'LineWidth',1);
+% end;
+% colormap(jet); axis square;
 
 %% return the modular communities...
 % repends on gamma choice for now
