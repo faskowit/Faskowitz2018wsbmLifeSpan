@@ -24,7 +24,7 @@ for idx = 1:length(wanted_files)
     readData.Properties.RowNames = table2cell(readData(:,1)) ;
     
     %readData = standardizeMissing(readData,'');
-    %find missing data
+    %find missing data, remove rows if data is missing (kind of extreme...)
     readData = readData(sum(ismissing(readData),2) == 0,:) ;
     
     [intersectSubj,~,rowIdx] = intersect(readData.Properties.RowNames,...
