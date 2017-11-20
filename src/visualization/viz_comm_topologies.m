@@ -38,7 +38,7 @@ E(isnan(E)) = 0;
 g_obs = graph(Edg2Adj(E));
 cmap = brewermap(length(unique(node_annot)),'PuOr');
 H = plot(g_obs,'-',...
-    'MarkerSize',8, ...               % node size in log scale
+    'MarkerSize',(g_obs.degree .* 0.2), ...               % node size in log scale
     'EdgeColor',[.8 .8 .8],...
     'EdgeAlpha',0.3,...
     'NodeCData',node_annot,...
@@ -53,10 +53,7 @@ set(gca,'xtick',[])
 
 %% modular
 
-sp1 = subplot(1,2,1) ;
-
-set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.75]);
-
+% SET UP DATA
 R = [1,2,3,4;
      2,1,2,3;
      3,2,1,2;
@@ -73,36 +70,103 @@ group_sizes = [25;25;25;25];
 E = Edg2Adj(E);
 E = triu(E) + triu(E,1)';
 
-% PLOT THE ADJ
-h = imagesc(E) ;
-set(h,'alphadata',~isnan(E));
-axis square
-set(gca,'ytick',[])
-set(gca,'xtick',[])
-
-% PLOT THE NETWORK
-
-% get rid of the NaNs for the network view
 E(isnan(E)) = 0;
+E(E<0) = 0;
 
 node_annot = [ ones(group_sizes(1),1) .* 1 ;
                ones(group_sizes(2),1) .* 2 ;
                ones(group_sizes(3),1) .* 3 ;
                ones(group_sizes(4),1) .* 4 ];
 
-sp2 = subplot(1,2,2) ;
+%%
+
+% setup plot
+           
+sp1 = subplot(1,3,1) ;
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 1 1]);
+
+% PLOT THE NETWORK
+
+% get rid of the NaNs for the network view
 
 g_obs = graph(Edg2Adj(E));
-cmap = brewermap(length(unique(node_annot)),'PuOr');
+cmap = brewermap(length(unique(node_annot)),'Spectral');
+
+LWidths = abs(2*g_obs.Edges.Weight/max(g_obs.Edges.Weight));
+
+Dsizes = (5*g_obs.degree ./ max(g_obs.degree)) ;
+
 H = plot(g_obs,'-',...
-    'MarkerSize',8, ...               % node size in log scale
+    'MarkerSize',Dsizes, ...               % node size in log scale
     'EdgeColor',[.6 .6 .6],...
     'EdgeAlpha',0.3,...
+    'LineWidth',LWidths,...
     'NodeCData',node_annot,...
     'NodeLabel',{});
 layout(H,'force','Iterations',1000)
 
-colormap(sp2,cmap)
+cm = colormap(sp1,cmap) ;
+cb = colorbar();
+cb.Ticks = [] ;
+ylabel(cb,'Communities','FontSize',18);
+
+axis square
+set(gca,'ytick',[])
+set(gca,'xtick',[])
+
+sp2 = subplot(1,3,2) ;
+
+% PLOT THE ADJ
+h = imagesc(E) ;
+%colormap('parula')
+
+set(h,'alphadata',~isnan(E));
+axis square
+set(gca,'ytick',[])
+set(gca,'xtick',[])
+
+colormap(flipud(gray))
+cb2 = colorbar() ;
+cb2.Ticks = [] ;
+ylabel(cb2,'Edge Strength','FontSize',18);
+%colorbar(cb2,'off')
+
+sp3 = subplot(1,3,3) ;
+
+% PLOT Affinity mat
+
+% make edge probability mat
+mat = zeros(4);
+for idx=1:4
+    for jdx=1:4
+        mat(idx,jdx) = theta_e(R(idx,jdx));
+    end
+end
+
+im = imagesc(mat);
+caxis([0 1])
+
+textStrings = num2str(mat(:),'%.2f');  %# Create strings from the matrix values
+textStrings = strtrim(cellstr(textStrings));  %# Remove any space padding
+%wantInd = mat>0; % only write text for non-zero vals
+%textStrings(wantInd == 0) = {''} ; % set the 0's to null
+[x,y] = meshgrid(1:(size(mat,1)));   %# Create x and y coordinates for the strings
+hStrings = text(x(:),y(:),textStrings(:),...      %# Plot the strings
+                'HorizontalAlignment','center');   
+
+%midValue = 0.4 ; % set to make it easier to read
+textColors = repmat(mat(:)> 0.25,1,3);  %# Choose white or black for the
+                                             %#   text color of the strings so
+                                             %#   they can be easily seen over
+                                             %#   the background color
+set(hStrings,{'Color'},num2cell(textColors,2));  %# Change the text colors
+
+cmap3 = brewermap(100,'Purples');
+
+colormap(sp3,cmap3)
+cb3 = colorbar() ;
+cb3.Ticks = [] ;
+ylabel(cb3,'Edge Exist Probability','FontSize',18);
 
 axis square
 set(gca,'ytick',[])
@@ -129,6 +193,11 @@ group_sizes = [25;25;25;25];
 % make symmetric
 E = Edg2Adj(E);
 E = triu(E) + triu(E,1)';
+
+E(isnan(E)) = 0;
+E(E<0) = 0;
+
+%%
 
 % PLOT THE ADJ
 h = imagesc(E) ;
