@@ -2,7 +2,7 @@
 
 % need to edit config file string to match what you want!!
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-config_file='config_scale125.m';
+config_file='config_yeo_take2.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -43,8 +43,8 @@ datasetDemo = readData.demoRaw ;
 % condition the data based on exclusion criteria
 
 nSubj = length(dataStruct) ;
-%sparse_cutoff = 0.25 ;
-sparse_cutoff = 0.15 ;
+sparse_cutoff = 0.25 ;
+%sparse_cutoff = 0.15 ;
 
 sparseness = zeros([length(dataStruct) 1]) ;
 
@@ -72,7 +72,7 @@ datasetDemo = datasetDemo(removeVec == 0, :);
 
 %% pick out young subs
 
-youngIdx = datasetDemo.age > 25 & datasetDemo.age <= 35 ;
+youngIdx = datasetDemo.age > ageLowLim & datasetDemo.age <= ageHighLim ;
 templateSubj_data = dataStruct(youngIdx == 1) ;
 clear youngIdx
 
@@ -639,7 +639,15 @@ save(outName,...
     'selectNodesFrmAvgBH',...
     '-v7.3')
 
+%% 
 
+outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_basicData_v7p3.mat');
+save(outName,...
+    'dataStruct',...
+    'datasetDemo',...
+    'selectNodesFrmRaw',...
+    'selectNodesFrmAvgBH',...
+    '-v7.3')
 
 
 

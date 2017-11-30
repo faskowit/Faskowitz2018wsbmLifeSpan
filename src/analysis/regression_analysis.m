@@ -15,7 +15,7 @@ function regression_analysis( readData , templateModel , selectNodesFrmRaw)
 
 % add BCT path
 addpath('~/JOSHSTUFF/scripts/BCT/2017_01_15_BCT/')
-addpath('~/JOSHSTUFF/projects/SBM2/aux_stuff/')
+%addpath('~/JOSHSTUFF/projects/SBM2/aux_stuff/')
 
 %% read in data
 % if we gonna use this script as a function 
@@ -49,7 +49,7 @@ wsbm_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % modularity matching num blocks %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[ ~ , modResults ] = compute_mod(templateModel,1.0) ;
+modResults = compute_mod_sweepG(templateModel) ;
 
 idx = max(modResults(2:end,:)) == templateModel.R_Struct.k ;
 modResultsSubS = modResults(:,idx) ;
@@ -101,6 +101,12 @@ yeo_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
     ca_yeo(:,2), selectNodesFrmRaw, 0, 1, 'countVolNormMat');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% output the comVecs file
+
+outName = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR, '_comVecs.mat');
+
+
 
 %% STEP 1
 

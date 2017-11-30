@@ -60,7 +60,7 @@ R = [1,2,2,2;
      2,4,4,4] ;    
 
 theta_w = [10,5; 10,1; 10,1; 10,1];
-theta_e = [0.5; 0.35; 0.1; 0.1];       
+theta_e = [0.75; 0.33; 0.1; 0.1];       
 group_sizes = [25;25;25;25];
 [E,~] = generateEdges('Normal','Bernoulli',R,theta_w,theta_e,group_sizes);
 
@@ -80,7 +80,7 @@ R = [1,2,3,4;
      4,3,2,1] ;    
 
 theta_w = [10,1; 10,5; 10,1; 10,1];
-theta_e = [0.05; 0.35; 0.25; 0.15];    
+theta_e = [0.05; 0.33; 0.25; 0.15];    
 group_sizes = [25;25;25;25];
 [E,~] = generateEdges('Normal','Bernoulli',R,theta_w,theta_e,group_sizes);
 
