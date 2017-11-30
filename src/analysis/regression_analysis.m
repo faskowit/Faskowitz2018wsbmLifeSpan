@@ -104,9 +104,15 @@ yeo_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
 
 %% output the comVecs file
 
+comVecs = struct() ;
+comVecs.wsbm = ca_wsbm(:,2) ;
+comVecs.mod = ca_mod(:,2) ;
+comVecs.yeo = ca_yeo(:,2) ;
+
 outName = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR, '_comVecs.mat');
-
-
+save(outName,...
+    'comVecs',...
+    '-v7.3')
 
 %% STEP 1
 
@@ -126,11 +132,6 @@ X = datasetDemo.age ;
 wsbm_rdens_statMat = run_regression_over_yMat(X,wsbm_gatherStruct.rdens,fits,otherArgs) ;
 mod_rdens_statMat = run_regression_over_yMat(X,mod_gatherStruct.rdens,fits,otherArgs) ;
 yeo_rdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdens,fits,otherArgs) ;
-
-comVecs = struct() ;
-comVecs.wsbm = ca_wsbm(:,2) ;
-comVecs.mod = ca_mod(:,2) ;
-comVecs.yeo = ca_yeo(:,2) ;
 
 outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_statMat_v7p3.mat');
 save(outName,...
