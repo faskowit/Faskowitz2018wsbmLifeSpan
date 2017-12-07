@@ -1,4 +1,4 @@
-function [emd_dist] = simple_emd(x1,x2)
+function [emd_dist] = simple_hist_dist(x1,x2)
 % calculate the earth mover's distance as the area between the csfs
 % 1-dim, with all obs having equal weight
 
@@ -15,5 +15,7 @@ sampleCDF1  =  sumCounts1(1:end-1);
 sampleCDF2  =  sumCounts2(1:end-1);
 
 emd_dist  =  sum(abs(sampleCDF1 - sampleCDF2));
+ks_stat = kstat = max(deltaCDF);
+
 
 

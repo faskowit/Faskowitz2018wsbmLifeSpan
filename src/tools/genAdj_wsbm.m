@@ -36,3 +36,11 @@ if nargout > 1
     noNaGenMat =  genMat ;
     noNaGenMat(~~isnan(genMat)) = 0 ;
 end
+
+
+
+
+
+
+
+

@@ -25,3 +25,10 @@ end
 randizeWSBMModel = struct(origModel) ; 
 randizeWSBMModel.Para.theta_e = new_theta_e;
 randizeWSBMModel.Para.theta_w = new_theta_w;
+
+
+
+
+
+
+
