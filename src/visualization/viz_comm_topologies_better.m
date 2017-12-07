@@ -92,10 +92,39 @@ E(E<0) = 0;
 
 viz_plot3Way_tight(E,R,theta_e,node_annot)
 
+
+%% cycle?
+
+R = [2,1,2,1;
+     2,3,1,2;
+     2,2,4,1;
+     2,2,4,4] ;    
+
+theta_w = [10,5; 10,1; 10,1; 10,1];
+theta_e = [0.75; 0.05; 0.05; 0.05];       
+group_sizes = [25;25;25;25];
+[E,~] = generateEdges('Normal','Bernoulli',R,theta_w,theta_e,group_sizes);
+
+% make symmetric
+E = Edg2Adj(E);
+E = triu(E) + triu(E,1)';
+E(isnan(E)) = 0;
+E(E<0) = 0;
+
+viz_plot3Way_tight(E,R,theta_e,node_annot)
 %% data we actually got...
 
 tmpData = templateModel.Data.Raw_Data;
-tmpData(isnan(tmpData)) = 0;
+%tmpData(isnan(tmpData)) = 0;
+
+% maybe lets get one hemi and fit a blockmodel...
+tmpData = tmpData(1:57,1:57);
+[~,hypotheticalModel] = wsbm(tmpData, ...
+    4, ...
+    'W_Distr', 'normal', ...
+    'E_Distr', 'bernoulli', ...
+    'NumTrials', 25,...
+    'verbosity', 1);
 
 % coords = load('data/external/yeo114_coords.mat') ;
 % coords = coords.coords ;
@@ -105,11 +134,19 @@ tmpData(isnan(tmpData)) = 0;
 %                ones(group_sizes(3),1) .* 3 ;
 %                ones(group_sizes(4),1) .* 4 ];
 
-[~,node_annot] = community_assign(templateModel) ;
+tmpData(isnan(tmpData)) = 0;
+[~,node_annot] = community_assign(hypotheticalModel) ;
+[~,sortIdx] = sort(node_annot);
+vvv = viz_plot3Way_tight(tmpData(sortIdx,sortIdx),hypotheticalModel.R_Struct.R,...
+    hypotheticalModel.Para.predict_e,node_annot) ;
 
-viz_plot3Way_tight(tmpData,templateModel.R_Struct.R,templateModel.Para.predict_e,node_annot)
+axes(vvv(2)) 
 
+[X,Y,INDSORT] = grid_communities(node_annot); % call function
+hold on;                                 % hold on to overlay community visualization
+plot(X,Y,'Color',[0.1 0.1 0.1 0.1],'linewidth',2);             % plot community boundaries
 
+%%
 
 
 figure

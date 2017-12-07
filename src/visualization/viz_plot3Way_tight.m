@@ -1,4 +1,4 @@
-function [] =  viz_plot3Way_tight(Edata,Rdata,thetaEdata,nodeAnnotData)
+function [ subp ] =  viz_plot3Way_tight(Edata,Rdata,thetaEdata,nodeAnnotData)
            
 % setup plot       
 %sp1 = subplot(1,3,1) ;
