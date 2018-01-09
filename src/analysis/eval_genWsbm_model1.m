@@ -1,4 +1,4 @@
-function [B,E,K] = eval_genWsbm_model1(wsbmModel,D,numSims)
+function [B,E,K,EMD] = eval_genWsbm_model1(origModel,D,numSims,randModelParam)
 % EVAL_GENWSBM_MODEL     Generation and evaluation of synthetic networks
 %
 %   [B,E,K] = EVALUATE_GENERATIVE_MODEL(A,Atgt,D,m,modeltype,modelvar,params) 
@@ -9,7 +9,7 @@ function [B,E,K] = eval_genWsbm_model1(wsbmModel,D,numSims)
 %
 %   Inputs:
 %           wsbmModel,  WSBM model struct output from wsbm fitting
-%           D,          Euclidean distance/fiber length matrix
+%           D,          Euclidean distance
 %           numSims,    Number of simulated networks to generate (1000)
 %
 %   Outputs:
@@ -28,13 +28,17 @@ function [B,E,K] = eval_genWsbm_model1(wsbmModel,D,numSims)
 %   Reference: Betzel et al (2016) Neuroimage 124:1054-64.
 %
 %   Richard Betzel, Indiana University/University of Pennsylvania, 2015
-%   Josh Faskowitz yo
+%   Josh Faskowitz edited
 
 if nargin < 3
     numSims = 100 ;
 end
 
-Atgt = wsbmModel.Data.Raw_Data ;
+if nargin < 4
+    randModelParam = 0; 
+end
+
+Atgt = origModel.Data.Raw_Data ;
 %replace NaN's with 0
 Atgt(~~isnan(Atgt)) = 0 ;
 %remove diagonal to be safe
@@ -45,19 +49,30 @@ Atgt = single(Atgt~=0);
 % emperical stats
 x = cell(4,1);
 x{1} = sum(triu(Atgt,1),2);
-%x{2} = mean(matching_ind_und(Atgt))';
-%x{2} = clustering_coef_bu(Atgt);
-x{2} = eigenvector_centrality_und(Atgt);
+%x{2} = eigenvector_centrality_und(Atgt);
+x{2} = clustering_coef_bu(Atgt);
+
 x{3} = betweenness_bin(Atgt)';
 x{4} = D(triu(Atgt,1) > 0);
 
-% record K-S stats
-K = zeros(numSims,4);
+% record num stats to eval on
+numStats = length(x);
+
+% record K-S, EMD stats
+K = zeros(numSims,numStats);
+EMD = zeros(numSims,numStats);
 
 % record simulated networks
 B = zeros([ nNodes nNodes numSims]);
 
 for idx = 1:numSims
+        
+    % rand the model?
+    if randModelParam == 1
+        wsbmModel = randomize_wsbm_para(origModel,3);
+    else
+        wsbmModel = origModel; 
+    end
     
     % recover the no-NaN output
     [~,b] = genAdj_wsbm(wsbmModel) ;
@@ -67,23 +82,24 @@ for idx = 1:numSims
     
     B(:,:,idx) = b ;
     
-    y = cell(4,1);
+    y = cell(numStats,1);
+    
     y{1} = sum(triu(b,1),2);
-    %y{2} = mean(matching_ind_und(b))'; 
-    %y{2} = clustering_coef_bu(b);
-    y{2} = eigenvector_centrality_und(b);
+    %y{2} = eigenvector_centrality_und(b);
+    y{2} = clustering_coef_bu(b);
+    
     y{3} = betweenness_bin(b)';
-    %y{3} = eigenvector_centrality_und(b); 
     y{4} = D(triu(b,1) > 0);
-    for j = 1:4
-        K(idx,j) = fcn_ks(x{j},y{j});
+        
+    for j = 1:numStats
+        [K(idx,j),EMD(idx,j)] = fcn_ks(x{j},y{j});
     end
     
     disp(idx)
 end
 E = max(K,[],2);
 
-function kstat = fcn_ks(x1,x2)
+function [kstat,emd] = fcn_ks(x1,x2)
 binEdges    =  [-inf ; sort([x1;x2]) ; inf];
 
 binCounts1  =  histc (x1 , binEdges, 1);
@@ -97,4 +113,13 @@ sampleCDF2  =  sumCounts2(1:end-1);
 
 deltaCDF  =  abs(sampleCDF1 - sampleCDF2);
 kstat = max(deltaCDF);
+emd = sum(deltaCDF);
+
+
+
+
+
+
+
+
 

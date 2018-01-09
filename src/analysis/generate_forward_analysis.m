@@ -14,7 +14,10 @@ addpath(strcat(pwd,'/config'))
 run(config_file);
 
 % load the data we need to analyze this ish. 
-loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_fit_wsbm_script_v7p3.mat');
+% loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_fit_wsbm_script_v7p3.mat');
+% load(loadName) ;
+
+loadName = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR, '_templateModel_1.mat');
 load(loadName) ;
 
 % load the data we need to analyze this ish. 
@@ -37,31 +40,34 @@ muMod = dummyvar(comVecs.mod)' ;
     'mu_0', muMod , ...
     'verbosity', 0);
 
-%%
+% check the empircal edge existence
+% [~,~,~,tmpMat] = get_block_mat(templateAdj,comVecs.mod);
+
+%% setup vars for perm tests
+% select some metrics that can be reduce to scalar, to get distributions
+% across many permutations
 
 numPerms = 100 ;
 
 nNodes = templateModel.Data.n ;
 
 % save some results
-permsWSBMQ = zeros([ numPerms 1 ]);
-permsWSBMCCoef = zeros([ numPerms 1 ]);
-permsWSBMAssort = zeros([ numPerms 1 ]);
-permsWSBMParti = zeros([ numPerms 1 ]);
+permsWSBM_Q = zeros([ numPerms 1 ]);
+permsWSBM_CCoef = zeros([ numPerms 1 ]);
+permsWSBM_Assort = zeros([ numPerms 1 ]);
+permsWSBM_Parti = zeros([ numPerms 1 ]);
 
-permsMODQ = zeros([ numPerms 1 ]);
-permsMODCCoef = zeros([ numPerms 1 ]);
-permsMODAssort = zeros([ numPerms 1 ]); 
-permsMODParti = zeros([ numPerms 1 ]); 
+permsMOD_Q = zeros([ numPerms 1 ]);
+permsMOD_CCoef = zeros([ numPerms 1 ]);
+permsMOD_Assort = zeros([ numPerms 1 ]); 
+permsMOD_Parti = zeros([ numPerms 1 ]); 
 
-permsRANDQ = zeros([ numPerms 1 ]);
-permsRANDCCoef = zeros([ numPerms 1 ]);
-permsRANDAssort = zeros([ numPerms 1 ]); 
-permsRANDParti = zeros([ numPerms 1 ]); 
+permsRAND_Q = zeros([ numPerms 1 ]);
+permsRAND_CCoef = zeros([ numPerms 1 ]);
+permsRAND_Assort = zeros([ numPerms 1 ]); 
+permsRAND_Parti = zeros([ numPerms 1 ]); 
 
-% two community defs for running modularity
-[~,ca1] = community_assign(templateModel);
-[~,ca2] = community_assign(modularityModel);
+%% iterate through permuations
 
 for idx=1:numPerms
    
@@ -71,31 +77,32 @@ for idx=1:numPerms
     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
     tmpAdj = tmpAdj ~= 0;
     
-    permsWSBMQ(idx) = eval_modularity_wu(tmpAdj,ca1) ;
-    permsWSBMCCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
-    permsWSBMAssort(idx) = assortativity_bin(tmpAdj,0) ;
-    permsWSBMParti(idx) = median(participation_coef(tmpAdj,ca1));
+    permsWSBM_Q(idx) = eval_modularity_wu(tmpAdj,comVecs.wsbm) ;
+    permsWSBM_CCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
+    permsWSBM_Assort(idx) = assortativity_bin(tmpAdj,0) ;
+    permsWSBM_Parti(idx) = median(participation_coef(tmpAdj,comVecs.wsbm));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-%     [~,tmpAdj] = genAdj_wsbm(modularityModel);
-%     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
-%     
-%     permsMODQ(idx) = eval_modularity_wu(tmpAdj,ca2) ;
-%     permsMODCCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
-%     permsMODAssort(idx) = assortativity_bin(tmpAdj,0) ;
-%     permsMODParti(idx) = median(participation_coef(tmpAdj,ca2));
+    [~,tmpAdj] = genAdj_wsbm(modularityModel);
+    tmpAdj(1:nNodes+1:end)=0; %clear diagonal
+    tmpAdj = tmpAdj ~= 0;
 
-    %randomize template
-    rMod = randomize_wsbm_para(templateModel,3);
-    [~,tmpAdj] = genAdj_wsbm(rMod);
+    permsMOD_Q(idx) = eval_modularity_wu(tmpAdj,comVecs.mod) ;
+    permsMOD_CCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
+    permsMOD_Assort(idx) = assortativity_bin(tmpAdj,0) ;
+    permsMOD_Parti(idx) = median(participation_coef(tmpAdj,comVecs.mod));
+
+    % randomize template
+    randModel = randomize_wsbm_para(templateModel,3);
+    [~,tmpAdj] = genAdj_wsbm(randModel);
     tmpAdj(1:nNodes+1:end)=0; %clear diagonal
     tmpAdj = tmpAdj ~= 0;
     
-    permsRANDQ(idx) = eval_modularity_wu(tmpAdj,ca1) ;
-    permsRANDCCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
-    permsRANDAssort(idx) = assortativity_bin(tmpAdj,0) ;
-    permsRANDParti(idx) = median(participation_coef(tmpAdj,ca1));
+    permsRAND_Q(idx) = eval_modularity_wu(tmpAdj,comVecs.wsbm) ;
+    permsRAND_CCoef(idx) = median(clustering_coef_bu(tmpAdj)) ;
+    permsRAND_Assort(idx) = assortativity_bin(tmpAdj,0) ;
+    permsRAND_Parti(idx) = median(participation_coef(tmpAdj,comVecs.wsbm));
     
 end
 
@@ -111,9 +118,9 @@ empParti = median(participation_coef(tempBinData,comVecs.wsbm));
 
 %%
 
-histogram(permsWSBMParti)
+histogram(permsWSBM_Parti)
 hold
-histogram(permsRANDParti)
+histogram(permsRAND_Parti)
 
 
 %%
