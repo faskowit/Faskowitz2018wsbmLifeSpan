@@ -7,7 +7,7 @@ function [xvalR2, xvalsqErr, yhatLOOCV, coefStruct , lsFitStruct , permStruct ] 
 % J. Faskowitz edit;
 % using the script initially provided here: 
 % https://github.com/jyeatman/lifespan/blob/master/nc_FitAndEvaluateModels.m
-% editing it for the project, renamed FitAndEvaluateModels
+% editing it for the project
 %
 % By the time data reaches this function, it should be conditioned so that
 % it does not have NaNs or so that it only looks at a specific age subset
@@ -45,8 +45,8 @@ function [xvalR2, xvalsqErr, yhatLOOCV, coefStruct , lsFitStruct , permStruct ] 
 % y             - vector of y values
 % x             - vector of x values
 % model         - string denoting model type (e.g., 'linear')
-% crossvalidate - estimate R2 using cross validation? (logical)
-% bootIter      - number of bootstrap iterations (scaler >=1)
+% crossvalidate - estimate R2 using cross validation (logical)
+% bootIter      - number of bootstrap iterations (scalar >=1)
 %
 % Outputs:
 %
@@ -319,92 +319,91 @@ switch(model)
         end % perm 
 
 %% piecewise
-% got rid of for now
-%     case {'piecewise'}
-%         coef.name = model;
-%         % We will try cutpoints between age 12 and 30
-%         c = 12:2:30;
-%         
-%         % Fit the full model without leaving out data
-%         coef.full = piecewiseFit(x, y, c);
-%         
-%         % Bootstrap
-%         if bootstrap == 1
-%             coef.boot = bootstrp(bootIter,@(x,y) piecewiseFit(x,y,c),x,y);
-%         end
-%         
-%         if crossvalidate == 1
-%             for idx = 1:size(indLOOCV,2)
-%                 % Fit the piecewise model on the subset of the data
-%                 coef.xval(:,idx) = piecewiseFit(x(indLOOCV(:,idx)), y(indLOOCV(:,idx)), c);
-%                 % Evaluate the model at the left out point
-%                 yhatLOOCV(idx) = piecewiseEval(coef.xval(:,idx)', x(leftoutLOOCV(idx)));
-%             end
-%         end
-%     case {'piecewise2'}
-%         coef.name = model;
-%         % We will try cutpoints between age 12 and 30 and 62 and 80
-%         %c = [14:1:30; 58:1:74]';
-%         c = [14:2:28; 60:2:74]';
-%         % Fit the full model without leaving out data
-%         coef.full = piecewiseFit(x, y, c);
-%         
-%         % Bootstrap
-%         if bootstrap == 1
-%             coef.boot = bootstrp(bootIter,@(x,y) piecewiseFit(x,y,c),x,y);
-%         end
-%         
-%         if crossvalidate == 1
-%             for idx = 1:size(indLOOCV,2)
-%                 % Fit the piecewise model on the subset of the data
-%                 coef.xval(:,idx) = piecewiseFit(x(indLOOCV(:,idx)), y(indLOOCV(:,idx)), c);
-%                 % Evaluate the model at the left out point
-%                 yhatLOOCV(idx) = piecewiseEval(coef.xval(:,idx)', x(leftoutLOOCV(idx)));
-%             end
-%         end
-%     case {'piecewisenoflat'}
-%         coef.name = model;
-%         % We will try cutpoints between age 12 and 30
-%         c = 12:2:30;
-%         
-%         % Fit the full model without leaving out data
-%         coef.full = piecewiseFit(x, y, c,'fit');
-%         
-%         % Bootstrap
-%         if bootstrap == 1
-%             coef.boot = bootstrp(bootIter,@(x,y) piecewiseFit(x,y,c,'fit'),x,y);
-%         end
-%         
-%         if crossvalidate == 1
-%             for idx = 1:size(indLOOCV,2)
-%                 % Fit the piecewise model on the subset of the data
-%                 coef.xval(:,idx) = piecewiseFit(x(indLOOCV(:,idx)), y(indLOOCV(:,idx)), c,'fit');
-%                 % Evaluate the model at the left out point
-%                 yhatLOOCV(idx) = piecewiseEval(coef.xval(:,idx)', x(leftoutLOOCV(idx)));
-%             end
-%         end
-%     case {'piecewise2noflat'}
-%         coef.name = model;
-%         % We will try cutpoints between age 12 and 30 and 62 and 80
-%         %c = [14:1:30; 58:1:74]';
-%         c = [14:2:28; 60:2:74]';
-%         % Fit the full model without leaving out data
-%         coef.full = piecewiseFit(x, y, c,'fit');
-%         
-%         % Bootstrap
-%         if bootstrap == 1
-%             coef.boot = bootstrp(bootIter,@(x,y) piecewiseFit(x,y,c,'fit'),x,y);
-%         end
-%         
-%         if crossvalidate == 1
-%             for idx = 1:size(indLOOCV,2)
-%                 % Fit the piecewise model on the subset of the data
-%                 coef.xval(:,idx) = piecewiseFit(x(indLOOCV(:,idx)), y(indLOOCV(:,idx)), c,'fit');
-%                 % Evaluate the model at the left out point
-%                 yhatLOOCV(idx) = piecewiseEval(coef.xval(:,idx)', x(leftoutLOOCV(idx)));
-%             end
-%         end
-
+    case {'piecewise'}
+        coefStruct.name = model;
+        % We will try cutpoints between age 12 and 30
+        c = 12:2:30;
+        
+        % Fit the full model without leaving out data
+        coefStruct.full = piecewiseFit(x, y, c);
+        
+        % Bootstrap
+        if bootstrap == 1
+            coefStruct.boot = bootstrp(bootIter,@(x,y) piecewiseFit(x,y,c),x,y);
+        end
+        
+        if crossvalidate == 1
+            for idx = 1:size(indLOOCV,2)
+                % Fit the piecewise model on the subset of the data
+                coefStruct.xval(:,idx) = piecewiseFit(x(indLOOCV(:,idx)), y(indLOOCV(:,idx)), c);
+                % Evaluate the model at the left out point
+                yhatLOOCV(idx) = piecewiseEval(coefStruct.xval(:,idx)', x(leftoutLOOCV(idx)));
+            end
+        end
+    case {'piecewise2'}
+        coefStruct.name = model;
+        % We will try cutpoints between age 12 and 30 and 62 and 80
+        %c = [14:1:30; 58:1:74]';
+        c = [14:2:28; 60:2:74]';
+        % Fit the full model without leaving out data
+        coefStruct.full = piecewiseFit(x, y, c);
+        
+        % Bootstrap
+        if bootstrap == 1
+            coefStruct.boot = bootstrp(bootIter,@(x,y) piecewiseFit(x,y,c),x,y);
+        end
+        
+        if crossvalidate == 1
+            for idx = 1:size(indLOOCV,2)
+                % Fit the piecewise model on the subset of the data
+                coefStruct.xval(:,idx) = piecewiseFit(x(indLOOCV(:,idx)), y(indLOOCV(:,idx)), c);
+                % Evaluate the model at the left out point
+                yhatLOOCV(idx) = piecewiseEval(coefStruct.xval(:,idx)', x(leftoutLOOCV(idx)));
+            end
+        end
+    case {'piecewisenoflat'}
+        coefStruct.name = model;
+        % We will try cutpoints between age 12 and 30
+        c = 12:2:30;
+        
+        % Fit the full model without leaving out data
+        coefStruct.full = piecewiseFit(x, y, c,'fit');
+        
+        % Bootstrap
+        if bootstrap == 1
+            coefStruct.boot = bootstrp(bootIter,@(x,y) piecewiseFit(x,y,c,'fit'),x,y);
+        end
+        
+        if crossvalidate == 1
+            for idx = 1:size(indLOOCV,2)
+                % Fit the piecewise model on the subset of the data
+                coefStruct.xval(:,idx) = piecewiseFit(x(indLOOCV(:,idx)), y(indLOOCV(:,idx)), c,'fit');
+                % Evaluate the model at the left out point
+                yhatLOOCV(idx) = piecewiseEval(coefStruct.xval(:,idx)', x(leftoutLOOCV(idx)));
+            end
+        end
+    case {'piecewise2noflat'}
+        coefStruct.name = model;
+        % We will try cutpoints between age 12 and 30 and 62 and 80
+        %c = [14:1:30; 58:1:74]';
+        c = [14:2:28; 60:2:74]';
+        % Fit the full model without leaving out data
+        coefStruct.full = piecewiseFit(x, y, c,'fit');
+        
+        % Bootstrap
+        if bootstrap == 1
+            coefStruct.boot = bootstrp(bootIter,@(x,y) piecewiseFit(x,y,c,'fit'),x,y);
+        end
+        
+        if crossvalidate == 1
+            for idx = 1:size(indLOOCV,2)
+                % Fit the piecewise model on the subset of the data
+                coefStruct.xval(:,idx) = piecewiseFit(x(indLOOCV(:,idx)), y(indLOOCV(:,idx)), c,'fit');
+                % Evaluate the model at the left out point
+                yhatLOOCV(idx) = piecewiseEval(coefStruct.xval(:,idx)', x(leftoutLOOCV(idx)));
+            end
+        end
+        
     case {'exponent' 'exponential' 'exp'}
     %% exp    
         
