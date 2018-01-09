@@ -43,13 +43,14 @@ end
 
 %% Mapping Networks or Modules
 % load the vars I need
-load('4_josh_thanks.mat')
-load('4_josh_thanks2.mat')
-    
+% load('4_josh_thanks.mat')
+% load('4_josh_thanks2.mat')
+load('ccs_surfstat_yeo_info.mat')
+
 modules_lh = zeros(nVertices_lh,1);
 modules_rh = zeros(nVertices_rh,1);
 
-addpath('figures/DrosteEffect-BrewerMap-04533de/')
+% addpath('figures/DrosteEffect-BrewerMap-04533de/')
 cmap = brewermap(numParcels+2,colorStr);
 %force 0 to be grey
 %cmap(1,:) = [0.6 0.6 0.6];                        
