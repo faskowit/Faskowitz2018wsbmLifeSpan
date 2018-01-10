@@ -1,4 +1,4 @@
-function [V] = find_nodal_versatility(comMat)
+function [V] = get_nodal_versatility(comMat)
 % com mat should be nodes x paritions
 
 CM = agreement(comMat) ./ size(comMat,2);
