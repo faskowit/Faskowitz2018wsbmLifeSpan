@@ -78,8 +78,8 @@ modExclude = (sum(subjModCA) == 0) ;
 
 %% quick analysis... lets look at variability of nodal assignment
 
-wsbmCnsns = find_nodal_versatility(subjWsbmCA) ;
-modCnsns = find_nodal_versatility(subjModCA(:,~modExclude));
+wsbmCnsns = get_nodal_versatility(subjWsbmCA) ;
+modCnsns = get_nodal_versatility(subjModCA(:,~modExclude));
 
 %% iterate
 for idx = 1:nSubj
