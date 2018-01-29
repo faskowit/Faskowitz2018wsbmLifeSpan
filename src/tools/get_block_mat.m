@@ -1,9 +1,9 @@
 function [weiBM,avgWeiBM,binBM,avgBinBM,stdWeiBM] = get_block_mat(CIJ,ca)
 % given an adjacency matrix + community affiliations, return a block matrix
 % returns: 
-%           weighted block matrix
+%           weighted sum block matrix
 %           average weighted block matrix
-%           binary block matrix
+%           binary sum block matrix
 %           average binary block matrix
 %           std weights block matrix 
 %
@@ -48,20 +48,3 @@ for idx = 1:nBlocks % rows
          
     end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
