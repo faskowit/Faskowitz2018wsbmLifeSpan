@@ -51,7 +51,7 @@ axes(subp(2))
 h = imagesc(Edata) ;
 %colormap('parula')
 
-set(h,'alphadata',~isnan(Edata));
+set(h,'alphadata',(Edata > 0));
 axis square
 set(gca,'ytick',[])
 set(gca,'xtick',[])
@@ -86,7 +86,7 @@ end
 
 %hold on;                                 % hold on to overlay community visualization
 %plot(xGrid,yGrid,'r','linewidth',5);             % plot community boundaries
-hold off;
+%hold off;
 
 %% PLOT the affinity mat
 
@@ -156,5 +156,5 @@ end
 
 %hold on;                                 % hold on to overlay community visualization
 %plot(xGrid,yGrid,'r','linewidth',5);             % plot community boundaries
-hold off;
+%hold off;
 

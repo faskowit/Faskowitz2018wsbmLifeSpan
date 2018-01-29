@@ -21,9 +21,7 @@ node_annot = [ ones(group_sizes(1),1) .* 1 ;
                ones(group_sizes(3),1) .* 3 ;
                ones(group_sizes(4),1) .* 4 ];
 
-%viz_plot3Way(E,R,theta_e,node_annot)
 viz_plot3Way_tight(E,R,theta_e,node_annot)
-
 
 %% modular
 
@@ -92,26 +90,6 @@ E(E<0) = 0;
 
 viz_plot3Way_tight(E,R,theta_e,node_annot)
 
-
-%% cycle?
-
-R = [2,1,2,1;
-     2,3,1,2;
-     2,2,4,1;
-     2,2,4,4] ;    
-
-theta_w = [10,5; 10,1; 10,1; 10,1];
-theta_e = [0.75; 0.05; 0.05; 0.05];       
-group_sizes = [25;25;25;25];
-[E,~] = generateEdges('Normal','Bernoulli',R,theta_w,theta_e,group_sizes);
-
-% make symmetric
-E = Edg2Adj(E);
-E = triu(E) + triu(E,1)';
-E(isnan(E)) = 0;
-E(E<0) = 0;
-
-viz_plot3Way_tight(E,R,theta_e,node_annot)
 %% data we actually got...
 
 tmpData = templateModel.Data.Raw_Data;
@@ -167,6 +145,10 @@ set(gca,'ytick',[])
 set(gca,'xtick',[])
 
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.75]);
+
+
+
+
 
 
 
