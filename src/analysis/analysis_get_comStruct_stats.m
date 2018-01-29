@@ -30,6 +30,18 @@ templateData(isnan(templateData)) = 0;
 
 commSizes = histcounts(sort(comVecs.wsbm));
 
+%% look at where the high degree nodes are in the template data
+
+highD_level = 75 ; 
+
+% get certain percentile of the data
+highD_thr = prctile(sum(templateData,2),highD_level) ;
+highD_node = sum(templateData,2) > highD_thr ;
+
+wsbm_highDappear = histc(comVecs.wsbm(highD_node),1:nComm) ;
+mod_highDappear = histc(comVecs.mod(highD_node),1:nComm) ;
+yeo_highDappear = histc(comVecs.yeo(highD_node),1:nComm) ;
+
 %%
 
 % get the subject-level data
@@ -97,6 +109,14 @@ end
 wsbm_assort = eval_com_assortatvity_wu(templateData,comVecs.wsbm) ;
 mod_assort = eval_com_assortatvity_wu(templateData,comVecs.mod) ;
 yeo_assort = eval_com_assortatvity_wu(templateData,comVecs.yeo) ;
+
+%% more analysis on the model
+
+predict_e = templateModel.Para.predict_e ;
+predict_w = templateModel.Para.predict_w ;
+
+predictE_zscore = zscore(predict_e) ;
+predictW_zscore = zscore(predict_w) ;
 
 %% subject measures
 
@@ -172,10 +192,89 @@ for idx = 1:nSubj
 
 end
 
+%% subject-level where high degree nodes show up
+
+wsbm_highDappear_subjAll = zeros([ nComm nSubj ]);
+mod_highDappear_subjAll = zeros([ nComm nSubj ]);
+yeo_highDappear_subjAll = zeros([ 7 nSubj ]);
+
+highD_level = 75 ; 
+
+for idx = 1:nSubj
+
+    currSubjData = subjDataMat(:,:,idx) ; 
+    
+    % get certain percentile of the data
+    highD_thr = prctile(sum(currSubjData > 0,2),highD_level) ;
+    highD_node = sum(currSubjData > 0,2) > highD_thr ;
+
+    wsbm_highDappear_subjAll(:,idx) = histc(comVecs.wsbm(highD_node),1:nComm) ;
+    mod_highDappear_subjAll(:,idx) = histc(comVecs.mod(highD_node),1:nComm) ;
+    yeo_highDappear_subjAll(:,idx) = histc(comVecs.yeo(highD_node),1:7) ;
+    
+end
+  
+% ICC
+wsbm_highD_icc = IPN_icc(wsbm_highDappear_subjAll,3,'single') ;
+mod_highD_icc = IPN_icc(mod_highDappear_subjAll,3,'single') ;
+yeo_highD_icc = IPN_icc(yeo_highDappear_subjAll,3,'single') ;
+
+tmpICC = cell([3 1]);
+tmpData = cell([3 1]);
+tmpData{1} = wsbm_highDappear_subjAll ;
+tmpData{2} = mod_highDappear_subjAll ;
+tmpData{3} = yeo_highDappear_subjAll ;
+
+for rep = 1:3
+
+    % lets see if we can bootstrap these values
+    nBoot = 500 ;
+    tmpRes = zeros([ nBoot 1 ]);
+
+    % get bootstrp indicies
+    [~,bootInd] = bootstrp(nBoot,@(a)[],1:nSubj) ;
+
+    for idx = 1:nBoot
+
+        tmpRes(idx) = IPN_icc(tmpData{rep}(:,bootInd(:,idx)),3,'single');
+    end
+
+    tmpICC{rep} = prctile(tmpRes,[2.5 97.5]) ;
+    
+end
+
+wsbm_highD_icc_c95 = tmpICC{1};
+mod_highD_icc_c95 = tmpICC{2};
+yeo_highD_icc_c95 = tmpICC{3};
+
 %% make a table
 
 com_names = { '1' '2' '3' '4' '5' '6' '7' '8' '9' '10' }' ;
 yeo_names = { 'Vis' 'SomMot' 'DorsAttn' 'SalVent' 'Limbic' 'Cont' 'Default' } ; 
+
+multipleTables = cell([3 1]);
+
+for idx = 1:3
+    
+    %%%%%%%%%%%%%%%%%%
+    % template stats %
+    %%%%%%%%%%%%%%%%%%
+
+    % wsbm
+    multipleTables{idx} = table() ;
+    multipleTables{idx}.mean_within_weight = wsbm_avgWei_within ;
+    multipleTables{idx}.mean_btwn_weight = wsbm_avgWei_btwn ;
+    multipleTables{idx}.q_prcnt = wsbm_q ./ sum(wsbm_q) ;
+    multipleTables{idx}.mean_comm_parti_coef = wsbm_com_parti;
+    multipleTables{idx}.assort_of_comm = wsbm_assort ;
+    
+    if idx == 3
+        multipleTables{idx}.Properties.RowNames = com_names ;
+    else
+        multipleTables{idx}.Properties.RowNakes = yeo_names ;
+    end
+    
+end
 
 %%%%%%%%%%%%%%%%%%
 % template stats %
@@ -303,8 +402,6 @@ writetable(mod_subjDataTbl,fileName,'WriteRowNames',true)
 
 fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_yeo_subjAgg_stats.csv');
 writetable(yeo_subjDataTbl,fileName,'WriteRowNames',true)
-
-
 
 
 

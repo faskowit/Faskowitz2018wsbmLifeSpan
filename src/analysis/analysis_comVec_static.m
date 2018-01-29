@@ -102,15 +102,14 @@ end
 templateData = templateModel.Data.Raw_Data;
 templateData(isnan(templateData)) = 0 ;
 
-[~,modelWeiVec_empir] = get_block_mat(templateData,comVecs.wsbm);
-modelWeiVec_empir = modelWeiVec_empir(getIdx);
+[~,wsbm_weiVec_empir] = get_block_mat(templateData,comVecs.wsbm);
+wsbm_weiVec_empir = wsbm_weiVec_empir(getIdx);
 
 % model_edgeVec = templateModel.Para.predict_e ;
 % model_weiVec = templateModel.Para.predict_w ;
-wsbmPred_weiVec =  templateModel.Para.predict_e .*  templateModel.Para.predict_w; 
-wsbmPred_weiVec(isnan(wsbmPred_weiVec)) = 0;
-
-[~,WSBMWeiVec_square] = make_square(wsbmPred_weiVec);
+wsbm_weiVec_predict =  templateModel.Para.predict_e .*  templateModel.Para.predict_w; 
+wsbm_weiVec_predict(isnan(wsbm_weiVec_predict)) = 0;
+[~,wsbm_weiVec_predict_sqr] = make_square(wsbm_weiVec_predict);
 
 % and now creat the 'model' for the modular parition
 [~,mod_weiVec_empir] = get_block_mat(templateData,comVecs.mod);
@@ -128,6 +127,10 @@ wsbm_comms_weiVec_corr = zeros([nBlocks nSubj]) ;
 mod_comms_weiVec_corr = zeros([nBlocks nSubj]) ;
 yeo_comms_weiVec_corr = zeros([7 nSubj]) ;
 
+wsbm_comms_weiVec_cb = zeros([nBlocks nSubj]) ;
+mod_comms_weiVec_cb = zeros([nBlocks nSubj]) ;
+yeo_comms_weiVec_cb = zeros([7 nSubj]) ;
+
 wsbm_comms_weiVec_eud = zeros([nBlocks nSubj]) ;
 mod_comms_weiVec_eud = zeros([nBlocks nSubj]) ;
 yeo_comms_weiVec_eud = zeros([7 nSubj]) ;
@@ -141,7 +144,7 @@ for idx = 1:nSubj
    
     % correlation 
     corrStr='pearson';
-    wsbm_weiVec_corr(idx) = corr(wsbmPred_weiVec,avgBlockVec_wsbm(:,idx),...
+    wsbm_weiVec_corr(idx) = corr(wsbm_weiVec_predict,avgBlockVec_wsbm(:,idx),...
         'type',corrStr) ;
     mod_weiVec_corr(idx) = corr(mod_weiVec_empir,avgBlockVec_mod(:,idx),...
         'type',corrStr) ;
@@ -149,19 +152,23 @@ for idx = 1:nSubj
         'type',corrStr) ;
     
     % other distances   
-    wsbm_weiVec_eud(idx) = pdist([wsbmPred_weiVec' ; avgBlockVec_wsbm(:,idx)'],'cityblock') ;
-    mod_weiVec_eud(idx) = pdist([mod_weiVec_empir' ; avgBlockVec_mod(:,idx)'],'cityblock') ;
-    yeo_weiVec_eud(idx) = pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'cityblock') ;
+    wsbm_weiVec_cb(idx) = pdist([wsbm_weiVec_predict' ; avgBlockVec_wsbm(:,idx)'],'cityblock') ;
+    mod_weiVec_cb(idx) = pdist([mod_weiVec_empir' ; avgBlockVec_mod(:,idx)'],'cityblock') ;
+    yeo_weiVec_cb(idx) = pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'cityblock') ;
 
-    wsbm_weiVec_cos(idx) = pdist([wsbmPred_weiVec' ; avgBlockVec_wsbm(:,idx)'],'cosine') ;
-    mod_weiVec_cos(idx) = pdist([mod_weiVec_empir' ; avgBlockVec_mod(:,idx)'],'cosine') ;
-    yeo_weiVec_cos(idx) = pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'cosine') ;
+    wsbm_weiVec_eud(idx) = pdist([wsbm_weiVec_predict' ; avgBlockVec_wsbm(:,idx)'],'euclidean') ;
+    mod_weiVec_eud(idx) = pdist([mod_weiVec_empir' ; avgBlockVec_mod(:,idx)'],'euclidean') ;
+    yeo_weiVec_eud(idx) = pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'euclidean') ;
+    
+    wsbm_weiVec_cos(idx) = 1 - pdist([wsbm_weiVec_predict' ; avgBlockVec_wsbm(:,idx)'],'cosine') ;
+    mod_weiVec_cos(idx) = 1 - pdist([mod_weiVec_empir' ; avgBlockVec_mod(:,idx)'],'cosine') ;
+    yeo_weiVec_cos(idx) = 1 - pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'cosine') ;
     
     % distances of each community
     for jdx=1:nBlocks
         
         % correlation 
-        wsbm_comms_weiVec_corr(jdx,idx) = corr(WSBMWeiVec_square(:,jdx),...
+        wsbm_comms_weiVec_corr(jdx,idx) = corr(wsbm_weiVec_predict_sqr(:,jdx),...
             com_avgBlockVec_wsbm(:,jdx,idx),...
             'type',corrStr) ;
         mod_comms_weiVec_corr(jdx,idx) = corr(mod_weiVec_empir_sqr(:,jdx),...
@@ -169,17 +176,24 @@ for idx = 1:nSubj
             'type',corrStr) ;
         
         % other distances
-        wsbm_comms_weiVec_eud(jdx,idx) = pdist([WSBMWeiVec_square(:,jdx)' ;...
+        wsbm_comms_weiVec_cb(jdx,idx) = pdist([wsbm_weiVec_predict_sqr(:,jdx)' ;...
             com_avgBlockVec_wsbm(:,jdx,idx)' ],...
             'cityblock') ;
-        mod_comms_weiVec_eud(jdx,idx) = pdist([mod_weiVec_empir_sqr(:,jdx)' ; ...
+        mod_comms_weiVec_cb(jdx,idx) = pdist([mod_weiVec_empir_sqr(:,jdx)' ; ...
             com_avgBlockVec_mod(:,jdx,idx)'],...
             'cityblock') ;
- 
-        wsbm_comms_weiVec_cos(jdx,idx) = pdist([WSBMWeiVec_square(:,jdx)' ;...
+        
+        wsbm_comms_weiVec_eud(jdx,idx) = pdist([wsbm_weiVec_predict_sqr(:,jdx)' ;...
+            com_avgBlockVec_wsbm(:,jdx,idx)' ],...
+            'euclidean') ;
+        mod_comms_weiVec_eud(jdx,idx) = pdist([mod_weiVec_empir_sqr(:,jdx)' ; ...
+            com_avgBlockVec_mod(:,jdx,idx)'],...
+            'euclidean') ;
+        
+        wsbm_comms_weiVec_cos(jdx,idx) = 1 - pdist([wsbm_weiVec_predict_sqr(:,jdx)' ;...
             com_avgBlockVec_wsbm(:,jdx,idx)' ],...
             'cosine') ;
-        mod_comms_weiVec_cos(jdx,idx) = pdist([mod_weiVec_empir_sqr(:,jdx)' ; ...
+        mod_comms_weiVec_cos(jdx,idx) = 1 - pdist([mod_weiVec_empir_sqr(:,jdx)' ; ...
             com_avgBlockVec_mod(:,jdx,idx)'],...
             'cosine') ; 
     end
@@ -189,10 +203,13 @@ for idx = 1:nSubj
         yeo_comms_weiVec_corr(jdx,idx) = corr(yeo_weiVec_empir_sqr(:,jdx),...
             com_avgBlockVec_yeo(:,jdx,idx),...
             'type',corrStr) ;
-        yeo_comms_weiVec_eud(jdx,idx) = pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
+        yeo_comms_weiVec_cb(jdx,idx) = pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
             com_avgBlockVec_yeo(:,jdx,idx)'],...
             'cityblock') ; 
-        yeo_comms_weiVec_cos(jdx,idx) = pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
+        yeo_comms_weiVec_eud(jdx,idx) = pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
+            com_avgBlockVec_yeo(:,jdx,idx)'],...
+            'euclidean') ; 
+        yeo_comms_weiVec_cos(jdx,idx) = 1 -  pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
             com_avgBlockVec_yeo(:,jdx,idx)'],...
             'cosine') ;
     end
@@ -268,7 +285,7 @@ mod_regResult_cb = cell([length(fits) 1]) ;
 
 for idx = 1:length(fits)
 
-    Y = wsbm_weiVec_eud';
+    Y = wsbm_weiVec_cb';
     res = struct() ; 
     [ res.xvalR2 , ...
         res.xvalsqErr, ... 
@@ -279,7 +296,7 @@ for idx = 1:length(fits)
         = nc_FitAndEvaluateModels(Y,xVec,fits{idx},funcArgs{:}) ;
     wsbm_regResult_cb{idx} = res ;
     
-    Y =  mod_weiVec_eud' ;
+    Y =  mod_weiVec_cb' ;
     res = struct() ; 
     [ res.xvalR2 , ...
         res.xvalsqErr, ... 
@@ -315,10 +332,13 @@ set(pl,'MarkerFaceColor', [0.8500    0.3250    0.0980],...
 
 %% extra viz
 
+y_lim = [0.5 1] ;
+
 for idx=1:10
    subplot(2,5,idx) 
    plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cos(idx,:),'quadratic'));
-   ylim([0 0.5])
+   %ylim([0 0.5])
+   ylim(y_lim)
 end
 suptitle('wsbm comm cos')
 
@@ -326,7 +346,8 @@ figure
 for idx=1:10
    subplot(2,5,idx) 
    plot(fitlm(datasetDemo.age,mod_comms_weiVec_cos(idx,:),'quadratic'));
-   ylim([0 0.5])
+   %ylim([0 0.5])
+   ylim(y_lim)
 end
 suptitle('mod comm cos')
 
@@ -337,20 +358,22 @@ suptitle('mod comm cos')
 %    
 % end
 
+%%
 
+y_lim = [0 0.75] ;
 
 for idx=1:10
    subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_eud(idx,:),'quadratic'));
-   ylim([0 0.5])
+   plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cb(idx,:),'quadratic'));
+   ylim(y_lim)
 end
 suptitle('wsbm comm eud')
 
 figure
 for idx=1:10
    subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,mod_comms_weiVec_eud(idx,:),'quadratic'));
-   ylim([0 0.5])
+   plot(fitlm(datasetDemo.age,mod_comms_weiVec_cb(idx,:),'quadratic'));
+   ylim(y_lim)
 end
 suptitle('mod comm eud')
 

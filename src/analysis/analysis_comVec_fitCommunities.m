@@ -44,7 +44,7 @@ avgBlockVec_mod = zeros([nBlockInteract nSubj]) ;
 binBlockVec_wsbm = zeros([nBlockInteract nSubj]);
 binBlockVec_mod = zeros([nBlockInteract nSubj]) ;
 
-%% also community convec
+%% also community comvec
 com_avgBlockVec_wsbm = zeros([nBlocks nBlocks nSubj]);
 com_avgBlockVec_mod = zeros([nBlocks nBlocks nSubj]) ;
 
@@ -189,6 +189,65 @@ for idx = 1:nSubj
     end
     
 end
+
+%% look and how community distances are distributed
+
+wsbm_com_totLen = zeros([ nBlocks nSubj ]);
+mod_com_totLen = zeros([ nBlocks nSubj ]);
+
+wsbm_com_totDist = zeros([ nBlocks nSubj ]);
+mod_com_totDist = zeros([ nBlocks nSubj ]);
+
+subjLensMat = zeros([ nNodes nNodes nSubj ]);
+subjDistMat = zeros([ nNodes nNodes nSubj ]);
+
+% gather some data
+for idx = 1:nSubj
+
+    % mask out AdjMat entries below mask_thr
+    tmpMask = dataStruct(idx).countMat(selectNodesFrmRaw, selectNodesFrmRaw) > MASK_THR_INIT ;    
+    tmpMask(tmpMask > 0) = 1 ;   
+    
+    % get streamline lengths
+    tmpLens = dataStruct(idx).lensMat(selectNodesFrmRaw,selectNodesFrmRaw);
+    %tmpAdj(isnan(tmpAdj)) = 0 ;
+    subjLensMat(:,:,idx) = tmpLens .* tmpMask ;
+    
+    % get eud distances
+    subjDistMat(:,:,idx) = dataStruct(idx).distCoorMM(selectNodesFrmRaw,selectNodesFrmRaw) ;
+
+end
+    
+for idx = 1:nSubj
+    
+    % get the length matrix
+    tmpAdj = subjLensMat(:,:,idx) ;
+    
+    wsbm_tmpBlMat = get_block_mat(tmpAdj,subjWsbmCA(:,idx)) ;
+    wsbm_com_totLen(:,idx) = sum(wsbm_tmpBlMat(~~eye(nBlocks)),2) ;
+    
+    if modExclude(idx) == 0
+        mod_tmpBlMat = get_block_mat(tmpAdj,subjModCA(:,idx));
+        mod_com_totLen(:,idx) = sum(mod_tmpBlMat(~~eye(nBlocks)),2) ; 
+    else
+        mod_com_totLen(:,idx) = zeros([nBlocks 1]) ; 
+    end
+    
+    % get the dist matrix
+    tmpAdj = subjDistMat(:,:,idx) ;
+    
+    wsbm_tmpBlMat = get_block_mat(tmpAdj,subjWsbmCA(:,idx)) ;
+    wsbm_com_totDist(:,idx) = sum(wsbm_tmpBlMat(~~eye(nBlocks)),2) ;
+    
+    if modExclude(idx) == 0
+        mod_tmpBlMat = get_block_mat(tmpAdj,subjModCA(:,idx));
+        mod_com_totDist(:,idx) = sum(mod_tmpBlMat(~~eye(nBlocks)),2) ; 
+    else
+        mod_com_totDist(:,idx) = zeros([nBlocks 1]) ; 
+    end
+    
+end
+
 
 %% run the regression
 funcArgs = {1 500 [] 0 } ;
