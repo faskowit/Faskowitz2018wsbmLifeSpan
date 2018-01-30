@@ -13,14 +13,17 @@ load(loadName) ;
 loadName = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR, '_comVecs.mat');
 load(loadName) ;
 
-FIGURE_NAME = 'fig3' ;
+FIGURE_NAME = 'figA' ;
+
+outputdir = strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/');
+mkdir(outputdir)
 
 % lets make a nice picture of the template model
 
 %% data stuff
 
 nNodes = templateModel.Data.n ;
-% nComm = templateModel.R_Struct.k ; 
+nComm = templateModel.R_Struct.k ; 
 
 % get the template data
 templateData = templateModel.Data.Raw_Data ;
@@ -146,11 +149,21 @@ for fig = 1:length(parcels)
     ax.Title.String = { parcelName{fig}, ' community structure'};
     ax.TitleFontSizeMultiplier = 1.5 ;
 
+    % save it
+    fileName = strcat(parcels{fig},'_adj.png');
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+    %set(gcf,'paperpositionmode','auto');
+    print(gcf,'-dpng','-r500',ff);
+    close(gcf)
+    
 end
 
 %% plot the predicted edge existence and weight
 
 figure; 
+
+nNodes = templateModel.Data.n ;
+nComm = templateModel.R_Struct.k ; 
 
 tsubp = tight_subplot(2,1,0.07) ;
 axes(tsubp(1))
@@ -170,7 +183,7 @@ set(ax,'xtick',1:nComm)
 
 % add the colorbar
 cb = colorbar('peer',ax);
-cb.Label.String = 'Predicted edge-existence' ;
+cb.Label.String = 'Predicted existence' ;
 cb.Label.FontSize = 12 ;
 cb.Label.FontName = 'Arial';
 
@@ -193,21 +206,22 @@ set(ax,'xtick',1:nComm)
 
 % add the colorbar
 cb = colorbar('peer',ax);
-cb.Label.String = 'Predicted edge weight' ;
+cb.Label.String = 'Predicted weight' ;
 cb.Label.FontSize = 12 ;
 cb.Label.FontName = 'Arial';
 
 set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.8]);
-%set(gcf,'position', [200, 200, 400, 500])  % create new figure with specified size  
 
-% %% save it
-% 
-% fileName = 'yoyoyo.png';
-% ff = fullfile(strcat('reports/figures/',fileName)); 
-% set(gcf,'paperpositionmode','auto');
-% print(gcf,'-dpng','-r500',ff);
+% save it
+fileName = strcat('wsbm_predicted_e_w.png');
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
 
 %% module colors
+
+nComm4ColorMap = templateModel.R_Struct.k ;
 
 for fig = 1:length(parcels)
 %for fig = 3
@@ -286,16 +300,14 @@ for fig = 1:length(parcels)
 
     end      
 
-%     %plot on diagonal 
-%     pp = plot(xOnDiag,yOnDiag,'Color',[1 0 0 1],'linewidth',2.5);
-
-    cmap_mod = brewermap(nComm,'paired') ;
+    % MAKE THIS TEN...
+    cmap_mod = brewermap(nComm4ColorMap,'paired') ;
 
     for idx=0:(nComm-1)
 
         plot(xOnDiag( (idx*6)+1:((idx+1)*6) ) ,...
             yOnDiag(  (idx*6)+1:((idx+1)*6) ) ,...
-            'Color',cmap_mod(idx+1,:),'linewidth',3.5)
+            'Color',cmap_mod(uniqueLab(idx+1),:),'linewidth',3.5)
     end
 
     % compute some yticks
@@ -313,17 +325,18 @@ for fig = 1:length(parcels)
     set(ax,'yticklabel',uniqueLab)
     set(ax,'ticklength',[ 0 0]) 
 
-%     % add the colorbar
-%     cb = colorbar('peer',ax);
-%     cb.Label.String = 'Streamline Density' ;
-%     cb.Label.FontSize = 12 ;
-%     cb.Label.FontName = 'Arial';
-
     set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.8]);
 
     ax.Title.String = { parcelName{fig}, ' community colors'};
     ax.TitleFontSizeMultiplier = 1.5 ;
 
+    % save it
+    fileName = strcat(parcels{fig},'_commView.png');
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+    %set(gcf,'paperpositionmode','auto');
+    print(gcf,'-dpng','-r500',ff);
+    close(gcf)
+    
 end
 
 %% plot pred w & e
@@ -340,4 +353,22 @@ hold
 plot([ 0 0 ], get(gca,'ylim'),'k','Color',[0 0 0 0.25])
 plot(get(gca,'xlim'), [0 0],'k','Color',[0 0 0 0.25])
 
+xlabel('Z-score predicted edge')
+ylabel('Z-score predicted weight')
+
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.4]);
+pbaspect([1 1 1])
+tightfig()
+
+% ttt = lsline()
+beta = polyfit(z_predict_e,z_predict_w,1);
+linLine = refline(gca,beta);
+linLine.Color = [ linLine.Color 0.25 ] ;
+
+% save it
+fileName = strcat('wsbm_predicted_e_vs_w.png');
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
 

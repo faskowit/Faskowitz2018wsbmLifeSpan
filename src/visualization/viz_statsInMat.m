@@ -17,10 +17,6 @@ if ~exist('plot_title','var') || isempty(plot_title)
     plot_title = '' ;  
 end
 
-% add paths and stuff
-addpath('figures/')
-addpath('figures/DrosteEffect-BrewerMap-04533de/')
-
 % mat = mat;          
 bttmInd = tril(ones(size(mat)),-1) ;
 
