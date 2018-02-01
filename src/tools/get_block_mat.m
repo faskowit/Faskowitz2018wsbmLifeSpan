@@ -1,13 +1,27 @@
-function [weiBM,avgWeiBM,binBM,avgBinBM,stdWeiBM] = get_block_mat(CIJ,ca)
+function [weiBM,avgWeiBM,binBM,avgBinBM,stdWeiBM,sizesMat] = get_block_mat(CIJ,ca,excludeNaN)
 % given an adjacency matrix + community affiliations, return a block matrix
+%
+% inputs: 
+%           CIJ:        adjacency matrix
+%           ca:         community affiliation vector
+%
+%           excludeNaN: if you dont exlude NaN, when calculating the
+%           averages we will count nan edges still in the average... else,
+%           if excludeNaN == 1, treat the NaNs as throwaway
+%
 % returns: 
-%           weighted sum block matrix
-%           average weighted block matrix
-%           binary sum block matrix
-%           average binary block matrix
-%           std weights block matrix 
+%           weiBM:      sum of weights block matrix
+%           avgWeiBM:   average weighted block matrix
+%           binBM:      sum of binary weights block matrix
+%           avgBinBM:   average binary block matrix
+%           stdWeiBM:   std weights block matrix 
+%           sizesMat:   number of edges per block (incl. NaN edges)
 %
 % Josh Faskowtiz IU
+
+if nargin < 3
+    excludeNaN = 0 ;
+end
 
 % make ca column vec
 if ~iscolumn(ca)
@@ -39,12 +53,28 @@ for idx = 1:nBlocks % rows
     for jdx = 1:nBlocks %columns
 
         tmp = CIJ(ca == orderedBlocks(idx),ca == orderedBlocks(jdx));
-         
+        
+        % weighted
         weiBM(idx,jdx) = nansum(tmp(:));
-        avgWeiBM(idx,jdx) = nansum(tmp(:)) ./ sizesMat(idx,jdx);
-        binBM(idx,jdx) = nansum(tmp(:) > 0);
-        avgBinBM(idx,jdx) = nansum(tmp(:) > 0) ./ sizesMat(idx,jdx);
-        stdWeiBM(idx,jdx) = nanstd(tmp(:)) ;
+        avgWeiBM(idx,jdx) = nanmean(tmp(:));
+        
+        % binary
+        tmpbin = (isnan(tmp) .* tmp) + (tmp > 0) ;      
+        binBM(idx,jdx) = nansum(tmpbin(:));
+        avgBinBM(idx,jdx) = nanmean(tmpbin(:));
+        
+        % std
+        stdWeiBM(idx,jdx) = nanstd(tmp(:));
          
     end
 end
+
+% if we are not excluding the NaN's when averaging, we can just divide the
+% avg block mats by the size Mat, and overwrite what was previously
+% computed
+if excludeNaN == 0
+    avgWeiBM = weiBM ./ sizesMat;
+    avgBinBM = binBM ./ sizesMat;
+end
+
+
