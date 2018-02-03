@@ -14,8 +14,8 @@ function regression_analysis( readData , templateModel , selectNodesFrmRaw)
 % 5) individual fits
 
 % add BCT path
-addpath('~/JOSHSTUFF/scripts/BCT/2017_01_15_BCT/')
-%addpath('~/JOSHSTUFF/projects/SBM2/aux_stuff/')
+% addpath('~/JOSHSTUFF/scripts/BCT/2017_01_15_BCT/')
+% addpath('~/JOSHSTUFF/projects/SBM2/aux_stuff/')
 
 %% read in data
 % if we gonna use this script as a function 

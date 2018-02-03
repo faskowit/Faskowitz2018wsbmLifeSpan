@@ -3,7 +3,7 @@
 clc
 clearvars
 
-config_file='config_scale125.m';
+config_file='config_template.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -32,6 +32,7 @@ getIdx = ~~triu(ones(nBlocks));
 getIdxYeo = ~~triu(ones(7));
 
 subjDataMat = zeros([ nNodes nNodes nSubj ]);
+totDensity = zeros([ nSubj 1 ]); 
 
 %% unroll block vec vars
 
@@ -68,6 +69,8 @@ for idx = 1:nSubj
     tmpAdj_mask(tmpAdj_mask > 0) = 1 ;   
     tmpAdj = tmpAdj .* tmpAdj_mask ;
 
+    totDensity(idx) = nansum(tmpAdj(:));
+    
     subjDataMat(:,:,idx) = tmpAdj ;
     
     % wsbm
@@ -215,11 +218,34 @@ for idx = 1:nSubj
     end
 end
 
+%% save the variables we are interested in for a script to present results
+
+% outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_static_results.mat');
+% save(outName,...
+%     { 'wsbm_weiVec_corr' 
+
+outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_static_results.mat');
+save(outName,...
+    '*_weiVec_corr',...
+    '*_weiVec_cb',...
+    '*_weiVec_eud',...
+    '*_weiVec_cos',...
+    ...
+    '-v7.3')
+
+
 %% run the regression
 funcArgs = {1 500 [] 0 } ;
 fits = {'linear' 'quadratic' 'poisson'} ;
 
 xVec = datasetDemo.age;
+
+% should we regress out age and totDensity, and then look at the similarity
+% or distance metrics? lets check this out!
+[ a , b , res] = regress(wsbm_weiVec_cb',[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
+
+
+%%
 
 wsbm_regResult_cos = cell([length(fits) 1]) ;
 mod_regResult_cos = cell([length(fits) 1]) ;
