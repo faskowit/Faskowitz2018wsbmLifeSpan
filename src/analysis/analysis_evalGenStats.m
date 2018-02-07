@@ -22,6 +22,12 @@ load(loadName) ;
 loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_basicData_v7p3.mat');
 load(loadName) ;
 
+FIGURE_NAME = 'figC' ;
+
+outputdir = strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/');
+mkdir(outputdir)
+
+
 %% actual data
 
 templateAdj = templateModel.Data.Raw_Data ;
@@ -78,6 +84,8 @@ avgTemp_dist(1:nNodes+1:end)=0;
 
 %% plot energy 
 
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.8]);
+
 cmap = [0    0.4470    0.7410 ;
     0.8500    0.3250    0.0980];
 
@@ -88,9 +96,17 @@ hold
 histogram(mean(eval_mod_K,2),...
     'normalization','probability',...
     'FaceColor',cmap(2,:),'EdgeAlpha',0.01)
-legend('WSBM','Modular')
+lg = legend('WSBM','Modular') ;
+lg.FontSize = 16 ;
 
-%[~,p,ci,stat] = ttest2(mean(eval_wsbm_K,2),mean(eval_mod_K,2))
+ylim([0 0.1])
+
+axis square
+
+xlabel('Mean K-S energy')
+ylabel('Normalized frequency')
+
+% [~,p,ci,stat] = ttest2(mean(eval_wsbm_K,2),mean(eval_mod_K,2))
 % p =
 %      0
 % ci =
@@ -112,14 +128,39 @@ legend('WSBM','Modular')
 %        df: 1.9812e+04
 %        sd: [ 0.0105 0.0095 ]
 
+ttest_struct = struct();
+kstest_struct = struct();
+
+[~,ttest_struct.p,ttest_struct.ci,ttest_struct.stat] = ttest2(mean(eval_wsbm_K,2),mean(eval_mod_K,2),'Vartype','unequal');
+[~,kstest_struct.p,kstest_struct.stat] = kstest2(mean(eval_wsbm_K,2),mean(eval_mod_K,2));
+
+% save it
+fileName = 'mean_KS_energy.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
+save(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/','mean_KS_energy_stats.mat'),...
+    'ttest_struct','kstest_struct')
+
 %% plot each with their null
 
 sp = tight_subplot(1,2,.12,[.05 .05],[.1 .1]);
 axes(sp(1))
+
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.8, 0.6]);
+
 histogram(mean(eval_wsbm_K,2),'normalization','probability','FaceColor',cmap(1,:),'FaceAlpha',0.6,'EdgeAlpha',0.01)
 hold
 histogram(mean(eval_wsbmRand_K,2),'normalization','probability','FaceColor',cmap(1,:),'FaceAlpha',0.25,'EdgeAlpha',0.05)
+
+ylim([0 0.1])
+
 pbaspect([1 0.8 1])
+
+xlabel('Mean K-S energy')
+ylabel('Normalized frequency')
 % [~,p,ci,stat] = ttest2(mean(eval_wsbmRand_K,2),mean(eval_wsbm_K,2),'Vartype','unequal')
 % p =
 % 
@@ -137,7 +178,14 @@ axes(sp(2))
 histogram(mean(eval_mod_K,2),'normalization','probability','FaceColor',cmap(2,:),'FaceAlpha',0.6,'EdgeAlpha',0.01)
 hold
 histogram(mean(eval_modRand_K,2),'normalization','probability','FaceColor',cmap(2,:),'FaceAlpha',0.25,'EdgeAlpha',0.05)
+
+ylim([0 0.1])
+
 pbaspect([1 0.8 1])
+
+ylabel('Normalized frequency')
+xlabel('Mean K-S energy')
+
 % [~,p,ci,stat] = ttest2(mean(eval_modRand_K,2),mean(eval_mod_K,2),'Vartype','unequal')
 % p =
 %    1.3789e-72
@@ -149,9 +197,19 @@ pbaspect([1 0.8 1])
 %        df: 1.4522e+04
 %        sd: [2x1 double]
 
+% save it
+fileName = 'mean_KS_energy_vs_null.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
 %% plot each statistic
 
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.8, 0.6]);
+
 measure_names = {'Degree' 'Clustering' 'Betweenness' 'Edge length'} ;
+measure_short_names = { 'd' 'c' 'b' 'e' } ;
 
 for idx = 1:4
    
@@ -164,7 +222,15 @@ for idx = 1:4
     axis square
     title(measure_names{idx},'FontWeight','normal')
    
-    [~,p,ci,stat] = ttest2(eval_mod_K(:,idx),eval_wsbm_K(:,idx),'Vartype','unequal')
+    if idx == 1
+       ylabel('Normalized frequency') 
+    end
+    
+    ylim([0 0.35])
+    
+    [~,p,ci,stat] = ttest2(eval_mod_K(:,idx),eval_wsbm_K(:,idx),'Vartype','unequal') ;
+    
+    xlabel(strcat('KS({\it ',measure_short_names{idx},'})'))
     
 end
 
@@ -208,6 +274,13 @@ end
 %     tstat: -202.8450
 %        df: 1.9998e+04
 %        sd: [2x1 double]
+
+% save it
+fileName = 'KS_of_stats.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
 
 %% earth mover difference
 

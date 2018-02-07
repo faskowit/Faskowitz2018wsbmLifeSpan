@@ -5,7 +5,7 @@ clearvars
 
 %% load the necessary data
 
-config_file='config_yeo_take3.m';
+config_file='config_template.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -21,9 +21,13 @@ load(loadName) ;
 loadName = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR, '_comVecs.mat');
 load(loadName) ;
 
-%TODO
-% NEEED TO ADD ALL SUBNJSJSJSJJSJSJ
-load('/home/jfaskowi/JOSHSTUFF/projects/sbm3/data/processed/yeo_both_normalpoisson_a0p5_basicData_v7p3.mat') ;
+loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_basicData_v7p3.mat');
+load(loadName) ;
+
+FIGURE_NAME = 'figC' ;
+
+outputdir = strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/');
+mkdir(outputdir)
 
 %% actual data
 
