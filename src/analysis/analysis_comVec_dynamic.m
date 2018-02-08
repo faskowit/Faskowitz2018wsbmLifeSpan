@@ -80,11 +80,6 @@ end
 
 modExclude = (sum(subjModCA) == 0) ;
 
-%% quick analysis... lets look at variability of nodal assignment
-
-wsbmCnsns = get_nodal_versatility(subjWsbmCA(:,~modExclude)) ;
-modCnsns = get_nodal_versatility(subjModCA(:,~modExclude));
-
 %% iterate
 for idx = 1:nSubj
        
@@ -252,6 +247,44 @@ for idx = 1:nSubj
     
 end
 
+%% quick analysis... lets look at variability of nodal assignment
+
+wsbm_vers = get_nodal_versatility(subjWsbmCA(:,~modExclude)) ;
+mod_vers = get_nodal_versatility(subjModCA(:,~modExclude));
+
+% and gets look at consensus in age bins...
+% number of actual groups is thresholds + 1
+thresholds = 4 ;
+age_bins = thresholds + 1;
+
+[agesSorted,ageSortIdx] = sort(datasetDemo.age) ;
+
+low_quantile = [ 0 quantile(1:length(datasetDemo.age),4) ] ; 
+high_quantile = [ quantile(1:length(datasetDemo.age),4) (length(datasetDemo.age)+1) ] ;
+
+templateIdMat = zeros( [ size(datasetDemo.age,1) (thresholds+1) ] ) ;
+
+for templateIdx=1:age_bins
+
+    subjectsIdxVec = ageSortIdx > low_quantile(templateIdx) & ...
+        ageSortIdx < high_quantile(templateIdx) ;
+    
+    templateIdMat(:,templateIdx) = ~~subjectsIdxVec ;
+end
+
+templateIdMat2 = ~~templateIdMat(~modExclude,:) ;
+subjWsbmCA2 = subjWsbmCA(:,~modExclude) ;
+subjModCA2 = subjModCA(:,~modExclude);
+
+wsbm_agebin_vers = zeros([ nNodes 5]) ;
+mod_agebin_vers = zeros([ nNodes 5]) ;
+
+for idx=1:age_bins
+    
+    wsbm_agebin_vers(:,idx) = get_nodal_versatility(subjWsbmCA2(:,templateIdMat2(:,idx))) ;
+    mod_agebin_vers(:,idx) = get_nodal_versatility(subjModCA2(:,templateIdMat2(:,idx))) ; 
+end
+
 %% save it
 
 outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_dynamic_results.mat');
@@ -260,6 +293,7 @@ save(outName,...
     '*_weiVec_cb',...
     '*_weiVec_eud',...
     '*_weiVec_cos',...
+    '*_vers',...
     'totDensity',...
     'modExclude',...
     'wsbmCnsns','modCnsns',...

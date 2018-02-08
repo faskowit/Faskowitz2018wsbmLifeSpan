@@ -92,65 +92,66 @@ for idx = 1:age_bins
    end
 end
 
-%% lets fit the young model to old...
-% and the old model to the young
-
-oldestModel = consensusCrossIdx{2} ;
-
-% get the harsh_mu, with binary probabilities
-[ ~ , old_harsh_mu ] = make_WSBM_prior(oldestModel , 1) ;
-% make NULL model input
-% (need to have at least one trial...but it wont do anything) 
-old_nullModelStruct = indivModelInputStruct ;
-old_nullModelStruct.mu_0 = old_harsh_mu ;
-old_nullModelStruct.numTrials = 1 ;
-old_nullModelStruct.muMaxIter = 0 ;
-old_nullModelStruct.mainMaxIter = 0 ;
-old_nullModelStruct.verbosity = 0 ;
-% make this struct into a cell list that the wsbm likes
-a = struct2nv(old_nullModelStruct) ;
-b = struct2cell(old_nullModelStruct) ;
-c = [ a b ]';
-old_nullModelInput = c(:)' ;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-youngModel = consensusCrossIdx{1} ;
-
-% get the harsh_mu, with binary probabilities
-[ ~ , young_harsh_mu ] = make_WSBM_prior(youngModel , 1) ;
-% make NULL model input
-% (need to have at least one trial...but it wont do anything) 
-young_nullModelStruct = indivModelInputStruct ;
-young_nullModelStruct.mu_0 = young_harsh_mu ;
-young_nullModelStruct.numTrials = 1 ;
-young_nullModelStruct.muMaxIter = 0 ;
-young_nullModelStruct.mainMaxIter = 0 ;
-young_nullModelStruct.verbosity = 0 ;
-% make this struct into a cell list that the wsbm likes
-a = struct2nv(young_nullModelStruct) ;
-b = struct2cell(young_nullModelStruct) ;
-c = [ a b ]';
-young_nullModelStruct = c(:)' ;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-youngData = fitWSBMAllStruct(~~templateIdMat(:,1));
-youngDataLogEvid = zeros([ length(youngData) 1 ]);
-youngDataFitOld = cell([length(youngData) 1]);
-youngDataFitYoung = cell([length(youngData) 1]);
-
-for idx = 1:length(youngData)
-    
-    [~,youngDataFitOld{idx}] = wsbm(youngData(idx).Raw_Data,...
-        sym_RStruct(11),...
-        old_nullModelInput{:}) ;
-     
-    [~,youngDataFitYoung{idx}] = wsbm(youngData(idx).Raw_Data,...
-        youngData(idx).Model(1).R_Struct.R,...
-        young_nullModelStruct{:}) ;
-    
-end
+% DOESNT WORK
+% %% lets fit the young model to old...
+% % and the old model to the young
+% 
+% oldestModel = consensusCrossIdx{2} ;
+% 
+% % get the harsh_mu, with binary probabilities
+% [ ~ , old_harsh_mu ] = make_WSBM_prior(oldestModel , 1) ;
+% % make NULL model input
+% % (need to have at least one trial...but it wont do anything) 
+% old_nullModelStruct = indivModelInputStruct ;
+% old_nullModelStruct.mu_0 = old_harsh_mu ;
+% old_nullModelStruct.numTrials = 1 ;
+% old_nullModelStruct.muMaxIter = 0 ;
+% old_nullModelStruct.mainMaxIter = 0 ;
+% old_nullModelStruct.verbosity = 0 ;
+% % make this struct into a cell list that the wsbm likes
+% a = struct2nv(old_nullModelStruct) ;
+% b = struct2cell(old_nullModelStruct) ;
+% c = [ a b ]';
+% old_nullModelInput = c(:)' ;
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% youngModel = consensusCrossIdx{1} ;
+% 
+% % get the harsh_mu, with binary probabilities
+% [ ~ , young_harsh_mu ] = make_WSBM_prior(youngModel , 1) ;
+% % make NULL model input
+% % (need to have at least one trial...but it wont do anything) 
+% young_nullModelStruct = indivModelInputStruct ;
+% young_nullModelStruct.mu_0 = young_harsh_mu ;
+% young_nullModelStruct.numTrials = 1 ;
+% young_nullModelStruct.muMaxIter = 0 ;
+% young_nullModelStruct.mainMaxIter = 0 ;
+% young_nullModelStruct.verbosity = 0 ;
+% % make this struct into a cell list that the wsbm likes
+% a = struct2nv(young_nullModelStruct) ;
+% b = struct2cell(young_nullModelStruct) ;
+% c = [ a b ]';
+% young_nullModelStruct = c(:)' ;
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% youngData = fitWSBMAllStruct(~~templateIdMat(:,1));
+% youngDataLogEvid = zeros([ length(youngData) 1 ]);
+% youngDataFitOld = cell([length(youngData) 1]);
+% youngDataFitYoung = cell([length(youngData) 1]);
+% 
+% for idx = 1:length(youngData)
+%     
+%     [~,youngDataFitOld{idx}] = wsbm(youngData(idx).Raw_Data,...
+%         sym_RStruct(11),...
+%         old_nullModelInput{:}) ;
+%      
+%     [~,youngDataFitYoung{idx}] = wsbm(youngData(idx).Raw_Data,...
+%         youngData(idx).Model(1).R_Struct.R,...
+%         young_nullModelStruct{:}) ;
+%     
+% end
 
 
 

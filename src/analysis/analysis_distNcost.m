@@ -86,6 +86,8 @@ for idx = 1:nSubj
     % get cost
     tmpCost = (tmpMask .* tmpCount) .* tmpLens;  
     
+%     volMat(idx) = sum(tmpCost(:)) ;
+    
     [~,tmpAvg] = get_block_mat(tmpCost,comVecs.wsbm) ; 
     wsbm_avgCostMat(:,idx) = tmpAvg(getIdx);
     

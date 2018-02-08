@@ -63,6 +63,7 @@ for idx = 1:nSubj
     tmpAdj_mask(tmpAdj_mask > 0) = 1 ;   
     tmpAdj = tmpAdj .* tmpAdj_mask ;
 
+    totDensityBin(idx) = nansum(tmpAdj_mask(:));
     totDensity(idx) = nansum(tmpAdj(:));
     
     subjDataMat(:,:,idx) = tmpAdj ;
