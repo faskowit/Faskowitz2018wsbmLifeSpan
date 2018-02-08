@@ -25,6 +25,8 @@ nSubj = length(dataStruct) ;
 nBlocks = templateModel.R_Struct.k ;
 nNodes = templateModel.Data.n ;
 
+totDensity = zeros([nSubj 1]);
+
 nBlockInteract = (nBlocks^2 + nBlocks) / 2 ;
 
 getIdx = ~~triu(ones(nBlocks));
@@ -61,6 +63,8 @@ for idx = 1:nSubj
     tmpAdj = tmpAdj .* tmpAdj_mask ;
   
     subjDataMat(:,:,idx) = tmpAdj ;
+  
+    totDensity(idx) = sum(tmpAdj(:));
     
     % get the fit community assignments 
     [~,tmpCA] = community_assign(fitWSBMAllStruct(idx).centModel) ;
@@ -78,7 +82,7 @@ modExclude = (sum(subjModCA) == 0) ;
 
 %% quick analysis... lets look at variability of nodal assignment
 
-wsbmCnsns = get_nodal_versatility(subjWsbmCA) ;
+wsbmCnsns = get_nodal_versatility(subjWsbmCA(:,~modExclude)) ;
 modCnsns = get_nodal_versatility(subjModCA(:,~modExclude));
 
 %% iterate
@@ -250,169 +254,14 @@ end
 
 %% save it
 
-outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_static_results.mat');
+outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_dynamic_results.mat');
 save(outName,...
     '*_weiVec_corr',...
     '*_weiVec_cb',...
     '*_weiVec_eud',...
     '*_weiVec_cos',...
     'totDensity',...
+    'modExclude',...
+    'wsbmCnsns','modCnsns',...
     ...
     '-v7.3')
-
-%% run the regression
-funcArgs = {1 500 [] 0 } ;
-fits = {'linear' 'quadratic' 'poisson'} ;
-
-xVec = datasetDemo.age;
-
-wsbm_regResult_cos = cell([length(fits) 1]) ;
-mod_regResult_cos = cell([length(fits) 1]) ;
-
-for idx = 1:length(fits)
-
-    Y = wsbm_weiVec_cos';
-    res = struct() ; 
-    [ res.xvalR2 , ...
-        res.xvalsqErr, ... 
-        res.xvalYhat, ...
-        res.coef, ...
-        res.lsFitStruct,...
-        res.permStruct ] ...
-        = nc_FitAndEvaluateModels(Y,xVec,fits{idx},funcArgs{:}) ;
-    wsbm_regResult_cos{idx} = res ;
-    
-    Y =  mod_weiVec_cos' ;
-    res = struct() ; 
-    [ res.xvalR2 , ...
-        res.xvalsqErr, ... 
-        res.xvalYhat, ...
-        res.coef, ...
-        res.lsFitStruct,...
-        res.permStruct ] ...
-        = nc_FitAndEvaluateModels(Y,xVec,fits{idx},funcArgs{:}) ;
-    mod_regResult_cos{idx} = res ;
-    
-end
-
-%% figure out the fits that are best
-
-[~,wsbm_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), wsbm_regResult_cos));
-[~,mod_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), mod_regResult_cos));
-
-wsbm_trend = wsbm_regResult_cos{wsbm_minIdx};
-mod_trend = mod_regResult_cos{mod_minIdx};
-
-%% plot it
-
-fig1 = figure ;
-pl = viz_blockRegress(wsbm_trend,0, [0    0.4470    0.7410] ) ;
-set(pl,'MarkerFaceColor',[0    0.4470    0.7410  ],...
-    'MarkerFaceColor',[0    0.4470    0.7410  ],...
-    'MarkerFaceAlpha',.1,...
-    'MarkerEdgeAlpha',.2)
-hold
-pl = viz_blockRegress(mod_trend,0,[0.8500    0.3250    0.0980]);
-set(pl,'MarkerFaceColor', [0.8500    0.3250    0.0980],...
-    'MarkerEdgeColor',[0.8500    0.3250    0.0980],...
-    'MarkerFaceAlpha',.1,...
-    'MarkerEdgeAlpha',.2) 
-
-%% for the city block too
-
-funcArgs = {1 500 [] 0 } ;
-fits = {'linear' 'quadratic' 'poisson'} ;
-
-xVec = datasetDemo.age;
-
-wsbm_regResult_cb = cell([length(fits) 1]) ;
-mod_regResult_cb = cell([length(fits) 1]) ;
-
-for idx = 1:length(fits)
-
-    Y = wsbm_weiVec_cb';
-    res = struct() ; 
-    [ res.xvalR2 , ...
-        res.xvalsqErr, ... 
-        res.xvalYhat, ...
-        res.coef, ...
-        res.lsFitStruct,...
-        res.permStruct ] ...
-        = nc_FitAndEvaluateModels(Y,xVec,fits{idx},funcArgs{:}) ;
-    wsbm_regResult_cb{idx} = res ;
-    
-    Y =  mod_weiVec_cb' ;
-    res = struct() ; 
-    [ res.xvalR2 , ...
-        res.xvalsqErr, ... 
-        res.xvalYhat, ...
-        res.coef, ...
-        res.lsFitStruct,...
-        res.permStruct ] ...
-        = nc_FitAndEvaluateModels(Y,xVec,fits{idx},funcArgs{:}) ;
-    mod_regResult_cb{idx} = res ;
-    
-end
-
-[~,wsbm_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), wsbm_regResult_cb));
-[~,mod_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), mod_regResult_cb));
-
-%%
-
-wsbm_trend_cb = wsbm_regResult_cb{wsbm_minIdx};
-mod_trend_cb = mod_regResult_cb{mod_minIdx};
-
-fig1 = figure ;
-pl = viz_blockRegress(wsbm_trend_cb,0.12, [0    0.4470    0.7410] ) ;
-set(pl,'MarkerFaceColor',[0    0.4470    0.7410  ],...
-    'MarkerFaceColor',[0    0.4470    0.7410  ],...
-    'MarkerFaceAlpha',.1,...
-    'MarkerEdgeAlpha',.2)
-hold
-pl = viz_blockRegress(mod_trend_cb,0.15,[0.8500    0.3250    0.0980]);
-set(pl,'MarkerFaceColor', [0.8500    0.3250    0.0980],...
-    'MarkerEdgeColor',[0.8500    0.3250    0.0980],...
-    'MarkerFaceAlpha',.1,...
-    'MarkerEdgeAlpha',.2) 
-
-%% extra viz
-
-for idx=1:10
-   subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cos(idx,:),'quadratic'));
-   ylim([0 0.5])
-end
-suptitle('wsbm comm cos')
-
-figure
-for idx=1:10
-   subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,mod_comms_weiVec_cos(idx,:),'quadratic'));
-   ylim([0 0.5])
-end
-suptitle('mod comm cos')
-
-% figure;
-% for idx=1:10
-%    subplot(2,5,idx) 
-%    plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_eud(idx,:),'quadratic'));
-%    
-% end
-
-
-
-for idx=1:10
-   subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cb(idx,:),'quadratic'));
-   ylim([0 0.5])
-end
-suptitle('wsbm comm eud')
-
-figure
-for idx=1:10
-   subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,mod_comms_weiVec_cb(idx,:),'quadratic'));
-   ylim([0 0.5])
-end
-suptitle('mod comm eud')
-

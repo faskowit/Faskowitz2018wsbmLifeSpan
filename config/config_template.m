@@ -77,6 +77,10 @@ OUTPUT_STR = strcat(PARCELLATION , '_', ...
     lower(EDGE_DIST.name), '_', ...
     'a', strrep(num2str(INIT_ALPHA),'.','p')) ;
 
+% set the bounds 
+ageLowLim = 25 ;
+ageHighLim = 35 ;
+
 %% make output dir
 
 OUTPUT_DIR = strcat(PROJECT_DIR , '/data/') ; 
