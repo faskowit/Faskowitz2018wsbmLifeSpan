@@ -19,6 +19,9 @@ load(loadName) ;
 loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_dynamic_regResults.mat');
 load(loadName) ;
 
+loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_dynamic_results.mat');
+load(loadName)
+
 FIGURE_NAME = 'figF' ;
 
 outputdir = strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/');
@@ -202,10 +205,11 @@ close(gcf)
 %% VERSATILITY MAP
 
 vers_range = max([ wsbm_vers mod_vers ]) - min([ wsbm_vers mod_vers ]) ;
-vr = vers_range * 0.05 ;
+vr = vers_range * 0.03 ;
 vers_range = [ min([ wsbm_vers mod_vers ])-vr max([ wsbm_vers mod_vers ])+vr ];
 
-[lh_fig , rh_fig ] = pictureNodeStat(wsbm_vers,'both',[],'yeo',vers_range) ;
+% [lh_fig , rh_fig ] = pictureNodeStat(wsbm_vers,'both',[],'yeo',vers_range) ;
+[lh_fig , rh_fig ] = pictureNodeStat(wsbm_vers,'both') ;
 
 fileName = 'comVec_dynamic_wsbm_vers_lh.png';
 ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
@@ -220,7 +224,8 @@ print(rh_fig,'-dpng','-r500',ff);
 close(rh_fig)
 
 % mod
-[lh_fig , rh_fig ] = pictureNodeStat(mod_vers,'both',[],'yeo',vers_range) ;
+% [lh_fig , rh_fig ] = pictureNodeStat(mod_vers,'both',[],'yeo',vers_range) ;
+[lh_fig , rh_fig ] = pictureNodeStat(mod_vers,'both') ;
 
 fileName = 'comVec_dynamic_mod_vers_lh.png';
 ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
@@ -233,6 +238,22 @@ ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName));
 %set(gcf,'paperpositionmode','auto');
 print(rh_fig,'-dpng','-r500',ff);
 close(rh_fig)
+
+% and how plot the difference
+[lh_fig , rh_fig ] = pictureNodeStat(emp_diff,'both','RdBu') ;
+
+fileName = 'comVec_dynamic_diff_vers_lh.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(lh_fig,'-dpng','-r500',ff);
+close(lh_fig)
+
+fileName = 'comVec_dynamic_diff_vers_rh.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(rh_fig,'-dpng','-r500',ff);
+close(rh_fig)
+
 
 %% COMMUNITY STUFF
 
