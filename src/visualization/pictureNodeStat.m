@@ -1,7 +1,7 @@
-function [] = pictureNodeStat( nodeStat, plotWhat , colorStr, atlas) 
+function [f1 , f2] = pictureNodeStat( nodeStat, plotWhat , colorStr, atlas, cb_lim) 
 % inputs
 % 1) node-wise statistics
-% 2) what are they describing? (left, right, both?)
+% 2) what are they describing? (left, right, both?) only both rn
 % 3) your only choice right now is yeo
 
 if nargin < 2
@@ -13,11 +13,15 @@ if ~exist('colorStr','var') || isempty(colorStr)
     colorStr = 'YlOrRd';
 end
 
+if ~exist('cb_lim','var') || isempty(cb_lim)
+    cb_lim = '';
+end
+
 if nargin < 4
     atlas = 'yeo' ;
 end
 
-if ~strcmp(atlas,'yeo')
+if ~strcmp(atlas,'yeo') 
     disp('your only choice is yeo right now')
     return
 end
@@ -28,13 +32,13 @@ if strcmp(plotWhat,'both')
     disp('plot both')
     numParcels = length(nodeStat) / 2; 
     
-elseif strcmp(plotWhat,'left')
-    disp('plot left')
-    numParcels = length(nodeStat) ;
-    
-elseif strcmp(plotWhat,'right')
-    disp('plot right')
-    numParcels = length(nodeStat) ;
+% elseif strcmp(plotWhat,'left')
+%     disp('plot left')
+%     numParcels = length(nodeStat) ;
+%     
+% elseif strcmp(plotWhat,'right')
+%     disp('plot right')
+%     numParcels = length(nodeStat) ;
     
 else
     disp('invalid choice')
@@ -73,6 +77,9 @@ end
    
 disp(plotWhat)
 
+statRange = max(nodeStat) - min(nodeStat) ;
+colorbarMod = 0.025 * statRange ;
+
 if or(strcmp(plotWhat,'both'),strcmp(plotWhat,'left'))
     
     disp('rendering left')
@@ -81,12 +88,18 @@ if or(strcmp(plotWhat,'both'),strcmp(plotWhat,'left'))
     
     %render lh surfaces
     modules_lh = modules_lh + medialwall_lh;
-    figure('Units', 'pixel', 'Position', [100 100 800 800]); 
+    f1 = figure('Units', 'pixel', 'Position', [100 100 800 800]); 
     axis off
     SurfStatView(modules_lh, fs_lh, ' ', 'white', 'true'); 
     %colormap([0 0 0; 0.5 0.5 0.5; cmap]); 
     colormap([0 0 0; cmap]);
-    SurfStatColLim([min(nodeStat)-0.1 max(nodeStat)]);
+    
+    if isempty(cb_lim)
+        SurfStatColLim([min(nodeStat)-colorbarMod max(nodeStat)+colorbarMod]);
+    else
+        SurfStatColLim(cb_lim);
+    end
+    
     set(gcf, 'PaperPositionMode', 'auto');
 
 end
@@ -100,11 +113,17 @@ if or(strcmp(plotWhat,'both'),strcmp(plotWhat,'right'))
     
     %render rh surfaces
     modules_rh = modules_rh + medialwall_rh;
-    figure('Units', 'pixel', 'Position', [100 100 800 800]); axis off
+    f2 = figure('Units', 'pixel', 'Position', [100 100 800 800]); axis off
     SurfStatView(modules_rh, fs_rh, ' ', 'white', 'true'); 
     %colormap([0 0 0; 0.5 0.5 0.5; cmap]); 
     colormap([0 0 0; cmap]);
-    SurfStatColLim([min(nodeStat)-0.1 max(nodeStat)]);
+    
+    if isempty(cb_lim)
+        SurfStatColLim([min(nodeStat)-colorbarMod max(nodeStat)+colorbarMod]);
+    else
+        SurfStatColLim(cb_lim);
+    end
+    
     set(gcf, 'PaperPositionMode', 'auto');
 end
 
