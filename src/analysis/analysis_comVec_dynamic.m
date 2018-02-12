@@ -285,6 +285,66 @@ for idx=1:age_bins
     mod_agebin_vers(:,idx) = get_nodal_versatility(subjModCA2(:,templateIdMat2(:,idx))) ; 
 end
 
+%% some sort of comparison between the cos and cb overall
+
+[~,tb1,anova2_stat_cb] = anova2([wsbm_weiVec_cb(~modExclude)' mod_weiVec_cb(~modExclude)' ],1,'off') ;
+[~,tb2,anova2_stat_cos] = anova2([wsbm_weiVec_cos(~modExclude)' mod_weiVec_cos(~modExclude)' ],1,'off') ;
+
+% % same as above
+% [~,tb12] = anova_rm([wsbm_weiVec_cb' mod_weiVec_cb' yeo_weiVec_cb'],'off') ;
+% [~,tb22] = anova_rm([wsbm_weiVec_cos' mod_weiVec_cos' yeo_weiVec_cos'],'off') ;
+
+anova1_stat_cb_mult = multcompare(anova2_stat_cb) ;
+anova1_stat_cos_mult = multcompare(anova2_stat_cos) ;
+
+% or just a paired ttest too...
+[tt_h,tt_p,tt_ci,tt_stats] = ttest2(wsbm_weiVec_cb(~modExclude)',...
+    mod_weiVec_cb(~modExclude)','vartype','unequal') ;
+
+[tt_h,tt_p,tt_ci,tt_stats] = ttest2(wsbm_weiVec_cos(~modExclude)',...
+    mod_weiVec_cos(~modExclude)','vartype','unequal') ;
+
+%% and ttest on node versatility
+
+[tt_h,tt_p,tt_ci,tt_stats] = ttest2(wsbm_vers',...
+    mod_vers','vartype','unequal') ;
+
+% bootstrapping
+
+% get book indicies 
+nBoot = 500 ;
+vers_btsp_res = zeros([ nNodes nBoot ]);
+[~,bootInd] = bootstrp(nBoot,@(a)[],1:sum(~modExclude)) ;
+
+wsbmCA = subjWsbmCA(:,~modExclude) ;
+modCA = subjModCA(:,~modExclude) ;
+
+for idx = 1:nBoot
+
+    disp(idx)
+    
+    % get bootstrapped sample of wsbm and mod community strucutre 
+    wsbm_btsp_smpl = wsbmCA(:,bootInd(:,idx)) ;
+    mod_btsp_smpl = modCA(:,bootInd(:,idx)) ;
+    
+    wsbm_btsp_vers = get_nodal_versatility(wsbm_btsp_smpl) ;
+    mod_btsp_vers = get_nodal_versatility(mod_btsp_smpl) ;
+    
+    vers_btsp_res(:,idx) = wsbm_btsp_vers - mod_btsp_vers ;
+end
+
+vers_btsp_CI = prctile(vers_btsp_res',[2.5 97.5])' ;
+
+% check which do not cross 0
+btsp_good_ci = ((vers_btsp_CI(:,1) < 0) & (vers_btsp_CI(:,2) < 0)) | ...
+    ((vers_btsp_CI(:,1) > 0) & (vers_btsp_CI(:,2) > 0));
+
+btsp_mean_diff = btsp_good_ci .* mean(vers_btsp_res,2) ;
+btsp_mean_diff(btsp_mean_diff == 0) = NaN ;
+
+emp_diff = btsp_good_ci .* (wsbm_vers' - mod_vers') ;
+emp_diff(emp_diff == 0) = NaN ;
+
 %% save it
 
 outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_dynamic_results.mat');
@@ -296,6 +356,7 @@ save(outName,...
     '*_vers',...
     'totDensity',...
     'modExclude',...
-    'wsbmCnsns','modCnsns',...
+    'wsbm_vers','mod_vers',...
+    'vers_btsp_CI','btsp_mean_diff','emp_diff',...
     ...
     '-v7.3')
