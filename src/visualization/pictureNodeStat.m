@@ -51,13 +51,33 @@ end
 % load('4_josh_thanks2.mat')
 load('ccs_surfstat_yeo_info.mat')
 
-modules_lh = zeros(nVertices_lh,1);
-modules_rh = zeros(nVertices_rh,1);
-
 % addpath('figures/DrosteEffect-BrewerMap-04533de/')
-cmap = brewermap(numParcels+2,colorStr);
+cmap = brewermap(100,colorStr);
 %force 0 to be grey
 %cmap(1,:) = [0.6 0.6 0.6];                        
+
+statRange = max(nodeStat) - min(nodeStat) ;
+colorbarMod = 0.01 * statRange ;
+
+modules_lh = ones(nVertices_lh,1);
+modules_rh = ones(nVertices_rh,1);
+
+if min(nodeStat) < 0
+    mm = -( max(abs([min(nodeStat) max(nodeStat)]))) ; 
+    mx = ( max(abs([min(nodeStat) max(nodeStat)]))) ; 
+    disp('zero in nodeStat')
+else
+    mm = min(nodeStat) ;
+    mx = max(nodeStat) ;
+end
+
+% modules_lh = (min(nodeStat) - (2*colorbarMod)) .* modules_lh;
+% modules_rh = (min(nodeStat) - (2*colorbarMod)) .* modules_rh;
+modules_lh = (mm - (2*colorbarMod)) .* modules_lh;
+modules_rh = (mm - (2*colorbarMod)) .* modules_rh;
+
+% if there are NaNs, make it border
+nodeStat(isnan(nodeStat)) = (mm-(1*colorbarMod)) ;
 
 for parcelID=1:numParcels
 
@@ -75,27 +95,30 @@ for parcelID=1:numParcels
     
 end
    
-disp(plotWhat)
-
-statRange = max(nodeStat) - min(nodeStat) ;
-colorbarMod = 0.025 * statRange ;
+%disp(plotWhat)
 
 if or(strcmp(plotWhat,'both'),strcmp(plotWhat,'left'))
     
     disp('rendering left')
     
-    medialwall_lh = medialwall_lh .* (min(nodeStat)-0.2);
+    % clear any vars on medial wall
+    modules_lh = modules_lh .* ~(medialwall_lh) ;
+    
+    %medialwall_lh = medialwall_lh .* (min(nodeStat)-(1*colorbarMod));
+    medialwall_lh = medialwall_lh .* (mm-(1*colorbarMod));
     
     %render lh surfaces
     modules_lh = modules_lh + medialwall_lh;
     f1 = figure('Units', 'pixel', 'Position', [100 100 800 800]); 
     axis off
     SurfStatView(modules_lh, fs_lh, ' ', 'white', 'true'); 
-    %colormap([0 0 0; 0.5 0.5 0.5; cmap]); 
-    colormap([0 0 0; cmap]);
+    colormap([0 0 0; 0.5 0.5 0.5;  cmap]); 
+    %colormap([0 0 0; cmap]);
     
     if isempty(cb_lim)
-        SurfStatColLim([min(nodeStat)-colorbarMod max(nodeStat)+colorbarMod]);
+        %SurfStatColLim([min(nodeStat)-(3*colorbarMod) max(nodeStat)+(3*colorbarMod)]);
+        %SurfStatColLim([min(nodeStat)-(3*colorbarMod) max(nodeStat)+(3*colorbarMod)]);
+        SurfStatColLim([mm-(3*colorbarMod) mx]);
     else
         SurfStatColLim(cb_lim);
     end
@@ -111,15 +134,22 @@ if or(strcmp(plotWhat,'both'),strcmp(plotWhat,'right'))
     
     disp('rendering right')
     
+    % clear any vars on medial wall
+    modules_rh = modules_rh .* ~(medialwall_rh) ;
+    
+%     medialwall_rh = medialwall_rh .* (min(nodeStat)-(1*colorbarMod));
+    medialwall_rh = medialwall_rh .* (mm - (1*colorbarMod));
+    
     %render rh surfaces
     modules_rh = modules_rh + medialwall_rh;
     f2 = figure('Units', 'pixel', 'Position', [100 100 800 800]); axis off
     SurfStatView(modules_rh, fs_rh, ' ', 'white', 'true'); 
-    %colormap([0 0 0; 0.5 0.5 0.5; cmap]); 
-    colormap([0 0 0; cmap]);
+    colormap([0 0 0; 0.5 0.5 0.5;   cmap]); 
+    %colormap([0 0 0; cmap]);
     
     if isempty(cb_lim)
-        SurfStatColLim([min(nodeStat)-colorbarMod max(nodeStat)+colorbarMod]);
+%         SurfStatColLim([min(nodeStat)-(3*colorbarMod) max(nodeStat)+(3*colorbarMod)]);
+        SurfStatColLim([mm-(3*colorbarMod) mx]);
     else
         SurfStatColLim(cb_lim);
     end
