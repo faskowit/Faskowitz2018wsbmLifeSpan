@@ -34,6 +34,7 @@ modelInputs = {'W_Distr', 'Normal', ...
             'mainMaxIter', 100 , ...
             'muMaxIter', 50,  ...
             'verbosity' , 0};
+        
 r_struct = sym_RStruct(7) ;
 
 %% running just once
@@ -122,6 +123,42 @@ end
 
 % TODO FIX THIS MEASUREMENT
 additional_logE = cellfun(@(a)a.Para.LogEvidence,numTrials_results_additional) ;
+
+%% plot stuff
+
+numTrials_to_test_unrollable = repmat(numTrials_to_test',1,10) ;
+
+% time it takes
+scatter(numTrials_to_test_unrollable(:),numTrials_time_results(:))
+
+% get the absolute logEvidence from the results of first test
+numTrials_results_abs = cell(size(numTrials_results)) ;
+
+for idx = 1:size(numTrials_results,1)
+    for jdx = 1:size(numTrials_results,2)
+
+        [~,tmp_harsh] = make_WSBM_prior(numTrials_results{idx,jdx});
+        
+        modelInputs = {'W_Distr', numTrials_results{1,1}.W_Distr, ...
+            'E_Distr', numTrials_results{1,1}.E_Distr, ...
+            'alpha', numTrials_results{1,1}.Options.alpha, ...
+            'mainMaxIter', 1 , ...
+            'muMaxIter', 50,  ...
+            'mu_0', tmp_harsh, ...
+            'verbosity' , 0};
+
+         [~,tmp_model] = wsbm(dataMat, ...
+            numTrials_results{1,1}.R_Struct.R, ...
+            modelInputs{:},...
+            'numTrials', 1) ;  
+        
+        numTrials_results_abs{idx,jdx} = tmp_model ;
+        
+    end
+end
+    
+tmp1 = cellfun(@(a)a.Para.LogEvidence,numTrials_results)
+tmp2 = cellfun(@(a)a.Para.LogEvidence,numTrials_results_abs)
 
 % %% test 2
 % 
@@ -234,5 +271,63 @@ additional_logE = cellfun(@(a)a.Para.LogEvidence,numTrials_results_additional) ;
 % % theSeed = mu_seed./(ones(9,1)*sum(mu_seed,1))
 
 
+% for idx = 1:100 
+% 
+%     tmp_mu = numTrials_results{10,1}.Para.mu    ;
+%     tmp_mu = tmp_mu(:,randperm(114)) ;
+% 
+%     [~,tmp_mu] = make_WSBM_prior(tmp_mu,0) ;
+%     
+%     modelInputs = {'W_Distr', numTrials_results{1,1}.W_Distr, ...
+%         'E_Distr', numTrials_results{1,1}.E_Distr, ...
+%         'alpha', numTrials_results{1,1}.Options.alpha, ...
+%         'mainMaxIter', 1 , ...
+%         'muMaxIter', 50,  ...
+%         'mu_0', tmp_mu, ...
+%         'verbosity' , 0};
+%     [~,tmp_model] = wsbm(dataMat, ...
+%         numTrials_results{1,1}.R_Struct.R, ...
+%         modelInputs{:},...
+%         'numTrials', 1) ; 
+% 
+%     wwwwww(idx) = tmp_model.Para.LogEvidence ;
+%     
+% end
 
+for Rval = 8:13     
+        
+    r_struct = sym_RStruct(Rval) ;
 
+    %% running just once
+
+    % tic
+    % [~,oneRun_results] = wsbm(data, ...
+    %     r_struct, ...
+    %     modelInputs{:},...
+    %     'numTrials', 50 ,...
+    %     'verbosity' , 1) ;  
+    % toc
+
+    %%
+    parallel_pool = gcp ; 
+    ppm1 = ParforProgMon('indivFits',(repeat_iters * levels),1) ;
+
+    for idx=1:levels
+
+        parfor iidx=1:repeat_iters
+
+                t1=tic
+
+                [~,numTrials_results{idx,iidx}] = wsbm(dataMat, ...
+                    r_struct, ...
+                    modelInputs{:},...
+                    'numTrials', numTrials_to_test(idx) ) ;  
+
+                numTrials_time_results(idx,iidx) = toc(t1) ; 
+
+                ppm1.increment() 
+        end
+
+    end
+
+end

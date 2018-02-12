@@ -213,11 +213,22 @@ for idx = 1:nSubj
     end
 end
 
-%% save the variables we are interested in for a script to present results
+%% some sort of comparison between the cos and cb overall
 
-% outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_static_results.mat');
-% save(outName,...
-%     { 'wsbm_weiVec_corr' 
+[~,tb1,anova2_stat_cb] = anova2([wsbm_weiVec_cb' mod_weiVec_cb' yeo_weiVec_cb'],1,'off') ;
+[~,tb2,anova2_stat_cos] = anova2([wsbm_weiVec_cos' mod_weiVec_cos' yeo_weiVec_cos'],1,'off') ;
+
+% % same as above
+% [~,tb12] = anova_rm([wsbm_weiVec_cb' mod_weiVec_cb' yeo_weiVec_cb'],'off') ;
+% [~,tb22] = anova_rm([wsbm_weiVec_cos' mod_weiVec_cos' yeo_weiVec_cos'],'off') ;
+
+[~,tb12] = anova_rm([wsbm_weiVec_cb' mod_weiVec_cb' yeo_weiVec_cb'],'off') ;
+[~,tb22] = anova_rm([wsbm_weiVec_cos' mod_weiVec_cos' yeo_weiVec_cos'],'off') ;
+
+anova1_stat_cb_mult = multcompare(anova2_stat_cb) ;
+anova1_stat_cos_mult = multcompare(anova2_stat_cos) ;
+
+%% save the variables we are interested in for a script to present results
 
 outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_static_results.mat');
 save(outName,...
