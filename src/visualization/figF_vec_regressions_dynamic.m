@@ -34,8 +34,8 @@ all_reg_results{4} = regResultsCov_cb ;
 all_reg_results{5} = regResultsCovWMov_cb ;
 all_reg_results{6} = regResultsNoCov_cb ;
 
-reg_result_names = {'Cos sim. w/ covar.' 'Cos sim. w/ covar+mov' 'Cos sim' ...
-    'CB dist. w/ covar' 'CB dist. w/ covar+mov' 'CB dist'};
+reg_result_names = {'Cos sim. w/ covar.' 'Cos sim. w/ covar+mov' 'Cos similarity' ...
+    'CB dist. w/ covar' 'CB dist. w/ covar+mov' 'CB distance'};
 
 reg_ylabel_names = { 'Cos similarity adj. for covar' 'Cos similarity adj. for covar, mov' 'Cos similarity' ...
     'CB distance adj. covar' 'CB distance adj. for covar, mov' 'CB distance'} ;
@@ -106,8 +106,8 @@ for idx = 1:length(all_reg_results)
         ypos = yrange(1) + ypos ;
     end
 
-    annotText = { strcat('wsbm R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
-        strcat('mod R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
+    annotText = { strcat('WSBM R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
+        strcat('Modular R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
         %strcat('yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
         } ;
 
@@ -144,7 +144,7 @@ for idx = [ 3 6 ]
     axes(subp(idx / 3)) 
 
     % mod
-    pl = viz_blockRegress(mod_trend,0,default_cmap(2,:));
+    [ pl, ln1 ] = viz_blockRegress(mod_trend,0,default_cmap(2,:));
     set(pl,'MarkerFaceColor', default_cmap(2,:),...
         'MarkerEdgeColor',default_cmap(2,:),...
         'MarkerFaceAlpha',.15,...
@@ -152,7 +152,7 @@ for idx = [ 3 6 ]
     hold
 
     % wsbm
-    pl = viz_blockRegress(wsbm_trend,0, default_cmap(1,:)) ;
+    [ pl , ln2 ] = viz_blockRegress(wsbm_trend,0, default_cmap(1,:)) ;
     set(pl,'MarkerFaceColor',default_cmap(1,:),...
         'MarkerFaceColor',default_cmap(1,:),...
         'MarkerFaceAlpha',.15,...
@@ -170,15 +170,21 @@ for idx = [ 3 6 ]
     yrangeAbs = yrange(2) - yrange(1) ;
     % add the R2!! 
     if idx < 4
-        ypos = yrangeAbs * 0.25;
+        ypos = yrangeAbs * 0.09;
         ypos = yrange(1) + ypos ;
+        ll = legend([ ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','SouthEast','FontSize',12) ;
+        set(ll,'Units','inches')
+        legend('boxoff')
     else
-        ypos = yrangeAbs * 0.95;
+        ypos = yrangeAbs * 0.97;
         ypos = yrange(1) + ypos ;
+        ll = legend([ ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','NorthEast','FontSize',12) ;
+        set(ll,'Units','inches')
+        legend('boxoff')
     end
 
-    annotText = { strcat('wsbm R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
-        strcat('mod R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
+    annotText = { strcat('WSBM R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
+        strcat('Modular R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
 %         strcat('yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
         } ;
 
@@ -186,57 +192,294 @@ for idx = [ 3 6 ]
     
 end
 
-% % save it
+% save it
 fileName = 'comVec_dynamic_distances_noCov.png';
 ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)
 
-%% extra viz for communities...
+%% VERSATILITY MAP
+
+vers_range = max([ wsbm_vers mod_vers ]) - min([ wsbm_vers mod_vers ]) ;
+vr = vers_range * 0.05 ;
+vers_range = [ min([ wsbm_vers mod_vers ])-vr max([ wsbm_vers mod_vers ])+vr ];
+
+[lh_fig , rh_fig ] = pictureNodeStat(wsbm_vers,'both',[],'yeo',vers_range) ;
+
+fileName = 'comVec_dynamic_wsbm_vers_lh.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(lh_fig,'-dpng','-r500',ff);
+close(lh_fig)
+
+fileName = 'comVec_dynamic_wsbm_vers_rh.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(rh_fig,'-dpng','-r500',ff);
+close(rh_fig)
+
+% mod
+[lh_fig , rh_fig ] = pictureNodeStat(mod_vers,'both',[],'yeo',vers_range) ;
+
+fileName = 'comVec_dynamic_mod_vers_lh.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(lh_fig,'-dpng','-r500',ff);
+close(lh_fig)
+
+fileName = 'comVec_dynamic_mod_vers_rh.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(rh_fig,'-dpng','-r500',ff);
+close(rh_fig)
+
+%% COMMUNITY STUFF
+
+loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_comVec_dynamic_results.mat');
+load(loadName) ;
 
 y_lim = [0.5 1] ;
 
-for idx=1:10
-   subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cos(idx,:),'quadratic'));
-   %ylim([0 0.5])
-   ylim(y_lim)
-end
-suptitle('wsbm comm cos')
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% WSBM
 
 figure
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.55]);      
 for idx=1:10
    subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,mod_comms_weiVec_cos(idx,:),'quadratic'));
+%    plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cos(idx,:),'quadratic'));
+    scatter(datasetDemo.age(~modExclude),wsbm_comms_weiVec_cos(idx,~modExclude),24,default_cmap(1,:)) ;
    %ylim([0 0.5])
    ylim(y_lim)
+      
+   title(strcat('community',32,num2str(idx)));
+   
 end
-suptitle('mod comm cos')
+suptitle('wsbm commumity cos similarity')
 
-% figure;
-% for idx=1:10
-%    subplot(2,5,idx) 
-%    plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_eud(idx,:),'quadratic'));
-%    
-% end
+% save
+fileName = 'comVec_dynamic_comm_wsbm_cos.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
 
-%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MOD
+
+figure
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.55]);      
+for idx=1:10
+   subplot(2,5,idx) 
+%    plot(fitlm(datasetDemo.age,mod_comms_weiVec_cos(idx,:),'quadratic'));
+    scatter(datasetDemo.age(~modExclude),mod_comms_weiVec_cos(idx,~modExclude),24,default_cmap(2,:))
+   %ylim([0 0.5])
+   ylim(y_lim)
+         
+   title(strcat('community',32,num2str(idx)));
+   
+end
+suptitle('mod community cos similarity')
+
+% save
+fileName = 'comVec_dynamic_comm_mod_cos.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PAIRWISE
+
+figure
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.55]);      
+subp = tight_subplot(2,5,[.15 .05],[.1 .001],[.1 .05]) ;
+for idx=1:10
+ 
+    axes(subp(idx))
+    
+%    plot(fitlm(datasetDemo.age,mod_comms_weiVec_cos(idx,:),'quadratic'));
+%    sc = scatter(wsbm_comms_weiVec_cos(idx,:),mod_comms_weiVec_cos(idx,:),24,'k') ;
+   sc = scatter(wsbm_comms_weiVec_cos(idx,~modExclude),mod_comms_weiVec_cos(idx,~modExclude),24,datasetDemo.age(~modExclude)) ;
+   colormap(brewermap(50,'RdYlGn'))
+   %ylim([0 0.5])
+   %ylim(y_lim)
+   axis square
+   
+   xlim([ min([min(sc.XData) min(sc.YData)]) 1 ])
+   ylim([ min([min(sc.XData) min(sc.YData)]) 1 ])
+   
+   xlabel('wsbm')
+   ylabel('mod')
+   
+   refline(1,0)
+  
+   title(strcat('community',32,num2str(idx)));
+   
+end
+suptitle('wsbm vs mod community cos similarity')
+
+% save
+fileName = 'comVec_dynamic_comm_paired_cos.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
+figure ;
+
+sc = scatter(datasetDemo.age(~modExclude),datasetDemo.age(~modExclude),24,datasetDemo.age(~modExclude)) ;
+cb = colorbar()
+colormap(brewermap(50,'RdYlGn'))
+set(gca,'Visible','off')
+
+fileName = 'comVec_dynamic_comm_paired_cos_colorbar.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
+%% CB distance by community too
 
 y_lim = [0 0.75] ;
 
-for idx=1:10
-   subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cb(idx,:),'quadratic'));
-   ylim(y_lim)
-end
-suptitle('wsbm comm eud')
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% WSBM
 
 figure
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.55]);      
 for idx=1:10
    subplot(2,5,idx) 
-   plot(fitlm(datasetDemo.age,mod_comms_weiVec_cb(idx,:),'quadratic'));
+   scatter(datasetDemo.age(~modExclude),wsbm_comms_weiVec_cb(idx,~modExclude),24,default_cmap(1,:)) ;
    ylim(y_lim)
+      
+   title(strcat('community',32,num2str(idx)));
+   
 end
-suptitle('mod comm eud')
+suptitle('wsbm commumity CB distance')
+
+% save
+fileName = 'comVec_dynamic_comm_wsbm_cb.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MOD
+
+figure
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.55]);      
+for idx=1:10
+   subplot(2,5,idx) 
+   scatter(datasetDemo.age(~modExclude),mod_comms_weiVec_cb(idx,~modExclude),24,default_cmap(2,:))
+   ylim(y_lim)
+         
+   title(strcat('community',32,num2str(idx)));
+   
+end
+suptitle('mod community CB distance')
+
+% save
+fileName = 'comVec_dynamic_comm_mod_cb.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PAIRWISE
+
+figure
+set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.55]);      
+subp = tight_subplot(2,5,[.15 .05],[.1 .001],[.1 .05]) ;
+for idx=1:10
+ 
+    axes(subp(idx))
+
+   sc = scatter(wsbm_comms_weiVec_cb(idx,~modExclude),mod_comms_weiVec_cb(idx,~modExclude),24,datasetDemo.age(~modExclude)) ;
+   colormap(brewermap(50,'RdYlGn'))
+   
+   axis square
+   
+   xlim([ min([min(sc.XData) min(sc.YData)]) 1 ])
+   ylim([ min([min(sc.XData) min(sc.YData)]) 1 ])
+   
+   xlabel('wsbm')
+   ylabel('mod')
+   
+   refline(1,0)
+  
+   title(strcat('community',32,num2str(idx)));
+   
+end
+suptitle('wsbm vs mod community CB distancre')
+
+% save
+fileName = 'comVec_dynamic_comm_paired_cb.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
+figure ;
+
+sc = scatter(datasetDemo.age(~modExclude),datasetDemo.age(~modExclude),24,datasetDemo.age(~modExclude)) ;
+cb = colorbar()
+colormap(brewermap(50,'RdYlGn'))
+set(gca,'Visible','off')
+
+fileName = 'comVec_dynamic_comm_paired_cb_colorbar.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
+% %% extra viz for communities...
+% 
+% y_lim = [0.5 1] ;
+% 
+% for idx=1:10
+%    subplot(2,5,idx) 
+%    plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cos(idx,:),'quadratic'));
+%    %ylim([0 0.5])
+%    ylim(y_lim)
+% end
+% suptitle('wsbm comm cos')
+% 
+% figure
+% for idx=1:10
+%    subplot(2,5,idx) 
+%    plot(fitlm(datasetDemo.age,mod_comms_weiVec_cos(idx,:),'quadratic'));
+%    %ylim([0 0.5])
+%    ylim(y_lim)
+% end
+% suptitle('mod comm cos')
+% 
+% % figure;
+% % for idx=1:10
+% %    subplot(2,5,idx) 
+% %    plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_eud(idx,:),'quadratic'));
+% %    
+% % end
+% 
+% %%
+% 
+% y_lim = [0 0.75] ;
+% 
+% for idx=1:10
+%    subplot(2,5,idx) 
+%    plot(fitlm(datasetDemo.age,wsbm_comms_weiVec_cb(idx,:),'quadratic'));
+%    ylim(y_lim)
+% end
+% suptitle('wsbm comm eud')
+% 
+% figure
+% for idx=1:10
+%    subplot(2,5,idx) 
+%    plot(fitlm(datasetDemo.age,mod_comms_weiVec_cb(idx,:),'quadratic'));
+%    ylim(y_lim)
+% end
+% suptitle('mod comm eud')
 
