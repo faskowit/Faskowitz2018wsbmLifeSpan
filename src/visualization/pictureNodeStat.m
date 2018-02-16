@@ -73,8 +73,15 @@ end
 
 % modules_lh = (min(nodeStat) - (2*colorbarMod)) .* modules_lh;
 % modules_rh = (min(nodeStat) - (2*colorbarMod)) .* modules_rh;
-modules_lh = (mm - (2*colorbarMod)) .* modules_lh;
-modules_rh = (mm - (2*colorbarMod)) .* modules_rh;
+
+if isempty(cb_lim)
+    modules_lh = (mm - (2*colorbarMod)) .* modules_lh;
+    modules_rh = (mm - (2*colorbarMod)) .* modules_rh;
+else
+    modules_lh = (mm - (10*colorbarMod)) .* modules_lh;
+    modules_rh = (mm - (10*colorbarMod)) .* modules_rh;
+end
+
 
 % if there are NaNs, make it border
 nodeStat(isnan(nodeStat)) = (mm-(1*colorbarMod)) ;
@@ -105,21 +112,25 @@ if or(strcmp(plotWhat,'both'),strcmp(plotWhat,'left'))
     modules_lh = modules_lh .* ~(medialwall_lh) ;
     
     %medialwall_lh = medialwall_lh .* (min(nodeStat)-(1*colorbarMod));
-    medialwall_lh = medialwall_lh .* (mm-(1*colorbarMod));
+    
+    if isempty(cb_lim)
+        medialwall_lh = medialwall_lh .* (mm-(1*colorbarMod));
+    else
+        medialwall_lh = medialwall_lh .* (mm-(10*colorbarMod));
+    end
     
     %render lh surfaces
     modules_lh = modules_lh + medialwall_lh;
     f1 = figure('Units', 'pixel', 'Position', [100 100 800 800]); 
     axis off
-    SurfStatView(modules_lh, fs_lh, ' ', 'white', 'true'); 
-    colormap([0 0 0; 0.5 0.5 0.5;  cmap]); 
-    %colormap([0 0 0; cmap]);
-    
+    SurfStatView(modules_lh, fs_lh, ' ', 'white', 'true');     
     if isempty(cb_lim)
+        colormap([0 0 0; 0.5 0.5 0.5;  cmap]); 
         %SurfStatColLim([min(nodeStat)-(3*colorbarMod) max(nodeStat)+(3*colorbarMod)]);
         %SurfStatColLim([min(nodeStat)-(3*colorbarMod) max(nodeStat)+(3*colorbarMod)]);
         SurfStatColLim([mm-(3*colorbarMod) mx]);
     else
+        colormap([0 0 0; cmap]); 
         SurfStatColLim(cb_lim);
     end
     
@@ -137,20 +148,26 @@ if or(strcmp(plotWhat,'both'),strcmp(plotWhat,'right'))
     % clear any vars on medial wall
     modules_rh = modules_rh .* ~(medialwall_rh) ;
     
-%     medialwall_rh = medialwall_rh .* (min(nodeStat)-(1*colorbarMod));
-    medialwall_rh = medialwall_rh .* (mm - (1*colorbarMod));
+    % medialwall_rh = medialwall_rh .* (min(nodeStat)-(1*colorbarMod));
     
-    %render rh surfaces
+    if isempty(cb_lim) 
+        medialwall_rh = medialwall_rh .* (mm - (1*colorbarMod));
+    else
+       medialwall_rh = medialwall_rh .* (mm - (10*colorbarMod)); 
+    end
+        
+    % render rh surfaces
     modules_rh = modules_rh + medialwall_rh;
     f2 = figure('Units', 'pixel', 'Position', [100 100 800 800]); axis off
     SurfStatView(modules_rh, fs_rh, ' ', 'white', 'true'); 
-    colormap([0 0 0; 0.5 0.5 0.5;   cmap]); 
-    %colormap([0 0 0; cmap]);
+
     
     if isempty(cb_lim)
-%         SurfStatColLim([min(nodeStat)-(3*colorbarMod) max(nodeStat)+(3*colorbarMod)]);
+        % SurfStatColLim([min(nodeStat)-(3*colorbarMod) max(nodeStat)+(3*colorbarMod)]);
+        colormap([0 0 0; 0.5 0.5 0.5;  cmap]); 
         SurfStatColLim([mm-(3*colorbarMod) mx]);
     else
+        colormap([0 0 0; cmap]); 
         SurfStatColLim(cb_lim);
     end
     
