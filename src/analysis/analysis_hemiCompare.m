@@ -134,14 +134,20 @@ histogram(wsbm_ks_parti,'FaceColor',cmap(1,:),'FaceAlpha',0.6,'EdgeAlpha',0.01)
 hold
 histogram(mod_ks_parti,'FaceColor',cmap(2,:),'FaceAlpha',0.6,'EdgeAlpha',0.01)
 axis square
-title('Participation','FontWeight','normal')
+title('Participation coefficient','FontWeight','normal')
+xlabel(strcat('KS({\itbtwn. hemi.})'))
+ylabel('Frequency')
+xlim([ 0 0.5])
 
 subplot(1,3,2)
 histogram(wsbm_ks_zscore,'FaceColor',cmap(1,:),'FaceAlpha',0.6,'EdgeAlpha',0.01)
 hold
 histogram(mod_ks_zscore,'FaceColor',cmap(2,:),'FaceAlpha',0.6,'EdgeAlpha',0.01)
 axis square
-title('Within z-score','FontWeight','normal')
+title('Within module z-score','FontWeight','normal')
+xlabel(strcat('KS({\itbtwn. hemi.})'))
+ylabel('Frequency')
+xlim([ 0 0.5])
 
 subplot(1,3,3)
 histogram(wsbm_ks_assort,'FaceColor',cmap(1,:),'FaceAlpha',0.6,'EdgeAlpha',0.01)
@@ -149,10 +155,22 @@ hold
 histogram(mod_ks_assort,'FaceColor',cmap(2,:),'FaceAlpha',0.6,'EdgeAlpha',0.01)
 axis square
 title('Assortativity','FontWeight','normal')
+xlabel(strcat('KS({\itbtwn. hemi.})'))
+ylabel('Frequency')
+xlim([ 0 0.5])
 
 legend('WSBM','Modular')
+legend('boxoff')
 
 hold off
+
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.8, 0.6]);
+
+fileName = 'KS_hemi_stats.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/','figL','/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
 
 %% WHOLE MAT VIZ
 
@@ -201,7 +219,32 @@ legend([ ll(end-1) ll(end-3) ],'Left hemi.','Right hemi.')
 
 hold off
 
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.6, 0.6]);
+
+fileName = 'mat_hemi_example.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/','figL','/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
+
 %% example hist...
+
+% both...
+figure
+histogram(nodeAssort_mat(:,end),'EdgeAlpha',0.001,'FaceAlpha',0.25,...
+    'FaceColor',[0.1 0.1 0.1])
+axis square
+title('Full brain node metric','FontWeight','normal')
+ylabel('Frequency')
+xlabel('Node metric')
+
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.6, 0.6]);
+
+fileName = 'mat_hemi_example_both.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/','figL','/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
 
 % left
 figure
@@ -212,8 +255,18 @@ histogram(nodeAssort_mat(l_hemi,end),'EdgeAlpha',0.01,'FaceAlpha',0.6,...
     'FaceColor',cmap(1,:))
 axis square
 title('Left hemi. node metric','FontWeight','normal')
-ylabel('Node frequency')
+ylabel('Frequency')
+xlabel('Node metric')
+legend('Full brain dist.','Left hemi. dist.')
 hold off
+
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.6, 0.6]);
+
+fileName = 'mat_hemi_example_left.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/','figL','/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
 
 % right
 figure
@@ -224,13 +277,41 @@ histogram(nodeAssort_mat(r_hemi,end),'EdgeAlpha',0.01,'FaceAlpha',0.6,...
     'FaceColor',cmap(2,:))
 axis square
 title('Right hemi. node metric','FontWeight','normal')
-ylabel('Node frequency')
+legend('Full brain dist.','Right hemi. dist.')
+ylabel('Frequency')
+xlabel('Node metric')
 hold off
 
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.6, 0.6]);
 
+fileName = 'mat_hemi_example_right.png';
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/','figL','/',fileName)); 
+%set(gcf,'paperpositionmode','auto');
+print(gcf,'-dpng','-r500',ff);
+close(gcf)
 
+%% ttests between the two 
 
+[~,p,ci,stat] = ttest2(wsbm_ks_parti,mod_ks_parti,'Vartype','unequal') ;
+mean(wsbm_ks_parti)
+std(wsbm_ks_parti)
 
+mean(mod_ks_parti)
+std(mod_ks_parti)
+
+[~,p,ci,stat] = ttest2(wsbm_ks_zscore,mod_ks_zscore,'Vartype','unequal') ;
+mean(wsbm_ks_zscore)
+std(wsbm_ks_zscore)
+
+mean(mod_ks_zscore)
+std(mod_ks_zscore)
+
+[~,p,ci,stat] = ttest2(wsbm_ks_assort,mod_ks_assort,'Vartype','unequal') ;
+mean(wsbm_ks_assort)
+std(wsbm_ks_assort)
+
+mean(mod_ks_assort)
+std(mod_ks_assort)
 
 
 

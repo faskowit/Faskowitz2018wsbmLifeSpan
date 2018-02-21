@@ -30,21 +30,20 @@ templateData(isnan(templateData)) = 0;
 
 commSizes = histcounts(sort(comVecs.wsbm));
 
-%% look at where the high degree nodes are in the template data
+% %% look at where the high degree nodes are in the template data
+% 
+% highD_level = 75 ; 
+% 
+% % get certain percentile of the data
+% highD_thr = prctile(sum(templateData,2),highD_level) ;
+% highD_node = sum(templateData,2) > highD_thr ;
+% 
+% wsbm_highDappear = histc(comVecs.wsbm(highD_node),1:nComm) ;
+% mod_highDappear = histc(comVecs.mod(highD_node),1:nComm) ;
+% yeo_highDappear = histc(comVecs.yeo(highD_node),1:nComm) ;
 
-highD_level = 75 ; 
+%% gather the subject-level data
 
-% get certain percentile of the data
-highD_thr = prctile(sum(templateData,2),highD_level) ;
-highD_node = sum(templateData,2) > highD_thr ;
-
-wsbm_highDappear = histc(comVecs.wsbm(highD_node),1:nComm) ;
-mod_highDappear = histc(comVecs.mod(highD_node),1:nComm) ;
-yeo_highDappear = histc(comVecs.yeo(highD_node),1:nComm) ;
-
-%%
-
-% get the subject-level data
 subjDataMat = zeros([ nNodes nNodes nSubj ]);
 for idx = 1:nSubj  
 
@@ -109,6 +108,23 @@ predict_w = templateModel.Para.predict_w ;
 predictE_zscore = zscore(predict_e) ;
 predictW_zscore = zscore(predict_w) ;
 
+% find interaction low edge density, high edge weight
+tmp = (predictE_zscore < -1 ) & (predictW_zscore > 1) ;
+tmp = make_square(tmp) ;
+
+% high edge and weight
+tmp = (predictE_zscore > 1 ) & (predictW_zscore > 2.5) ;
+tmp = make_square(tmp) ;
+
+%% test to see which interactions are more common than null model
+
+
+
+
+
+
+
+
 %% subject measures
 
 modelNames = { 'wsbm' 'mod' 'yeo' } ;
@@ -132,9 +148,6 @@ for mN = 1:length(modelNames)
         currSubjData = subjDataMat(:,:,idx);
 
         % strength 
-%         subj_strength.(modelNames{mN}).within = zeros([nComm nSubj]) ;
-%         subj_strength.(modelNames{mN}).between = zeros([nComm nSubj]) ;
-
         [~,tmp_avgWeiBm] =  get_block_mat(currSubjData,comVecs.(modelNames{mN})) ;
         subj_strength.(modelNames{mN}).within(:,idx) = tmp_avgWeiBm(~~eye(nComm));
         subj_strength.(modelNames{mN}).between(:,idx) = (sum(tmp_avgWeiBm,2) - ...
@@ -161,11 +174,22 @@ end
 
 %% subject-level where high degree nodes show up
 
-wsbm_highDappear_subjAll = zeros([ nComm nSubj ]);
-mod_highDappear_subjAll = zeros([ nComm nSubj ]);
+wsbm_highDappear_subjAll = zeros([ 10 nSubj ]);
+mod_highDappear_subjAll = zeros([ 10 nSubj ]);
 yeo_highDappear_subjAll = zeros([ 7 nSubj ]);
 
+wsbm_highSappear_subjAll = zeros([ 10 nSubj ]);
+mod_highSappear_subjAll = zeros([ 10 nSubj ]);
+yeo_highSappear_subjAll = zeros([ 7 nSubj ]);
+
 highD_level = 75 ; 
+
+% need to algn the subj to the ref
+tmp_mod = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.mod) ;
+tmp_yeo = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.yeo) ;
+
+% need to do this because after alingment, yeo will have gap in com vec
+yeo_lab = unique(tmp_yeo) ;
 
 for idx = 1:nSubj
 
@@ -174,45 +198,121 @@ for idx = 1:nSubj
     % get certain percentile of the data
     highD_thr = prctile(sum(currSubjData > 0,2),highD_level) ;
     highD_node = sum(currSubjData > 0,2) > highD_thr ;
-
-    wsbm_highDappear_subjAll(:,idx) = histc(comVecs.wsbm(highD_node),1:nComm) ;
-    mod_highDappear_subjAll(:,idx) = histc(comVecs.mod(highD_node),1:nComm) ;
-    yeo_highDappear_subjAll(:,idx) = histc(comVecs.yeo(highD_node),1:7) ;
+    
+    wsbm_highDappear_subjAll(:,idx) = histc(comVecs.wsbm(highD_node),1:10) ;
+    mod_highDappear_subjAll(:,idx) = histc(tmp_mod(highD_node),1:10) ;
+    yeo_highDappear_subjAll(:,idx) = histc(tmp_yeo(highD_node),yeo_lab) ;
+   
+    highD_thr = prctile(sum(currSubjData,2),highD_level) ;
+    highD_node = sum(currSubjData,2) > highD_thr ;
+    
+    wsbm_highSappear_subjAll(:,idx) = histc(comVecs.wsbm(highD_node),1:10) ;
+    mod_highSappear_subjAll(:,idx) = histc(tmp_mod(highD_node),1:10) ;
+    yeo_highSappear_subjAll(:,idx) = histc(tmp_yeo(highD_node),yeo_lab) ;
     
 end
   
 % ICC
-wsbm_highD_icc = IPN_icc(wsbm_highDappear_subjAll,3,'single') ;
+wsbm_highD_icc = IPN_icc(wsbm_highappear_subjAll,3,'single') ;
 mod_highD_icc = IPN_icc(mod_highDappear_subjAll,3,'single') ;
 yeo_highD_icc = IPN_icc(yeo_highDappear_subjAll,3,'single') ;
 
+wsbm_highS_icc = IPN_icc(wsbm_highSappear_subjAll,3,'single') ;
+mod_highS_icc = IPN_icc(mod_highSappear_subjAll,3,'single') ;
+yeo_highS_icc = IPN_icc(yeo_highSappear_subjAll,3,'single') ;
+
 tmpICC = cell([3 1]);
+tmpICC_2 = cell([3 1]);
+
 tmpData = cell([3 1]);
 tmpData{1} = wsbm_highDappear_subjAll ;
 tmpData{2} = mod_highDappear_subjAll ;
 tmpData{3} = yeo_highDappear_subjAll ;
 
+tmpData_2 = cell([3 1]);
+tmpData_2{1} = wsbm_highSappear_subjAll ;
+tmpData_2{2} = mod_highSappear_subjAll ;
+tmpData_2{3} = yeo_highSappear_subjAll ;
+
+nBoot = 500 ;
+
+btspCommMed = cell([3 1]) ;
+btspCommMed{1} = zeros([10 nBoot]) ;
+btspCommMed{2} = zeros([10 nBoot]) ;
+btspCommMed{3} =zeros([7 nBoot]) ;
+tmpMed = cell([3 1]) ;
+
 for rep = 1:3
 
     % lets see if we can bootstrap these values
-    nBoot = 500 ;
     tmpRes = zeros([ nBoot 1 ]);
-
+    tmpRes_2 = zeros([ nBoot 1 ]);
+    
     % get bootstrp indicies
     [~,bootInd] = bootstrp(nBoot,@(a)[],1:nSubj) ;
 
     for idx = 1:nBoot
 
         tmpRes(idx) = IPN_icc(tmpData{rep}(:,bootInd(:,idx)),3,'single');
+        tmpRes_2(idx) = IPN_icc(tmpData_2{rep}(:,bootInd(:,idx)),3,'single');
+%         % lets also bootstrap the median of each community 
+%         btspCommMed{rep}(:,idx) = median(tmpData{rep}(:,bootInd(:,idx)),2) ;
+        
     end
 
     tmpICC{rep} = prctile(tmpRes,[2.5 97.5]) ;
+    tmpICC_2{rep} = prctile(tmpRes_2,[2.5 97.5]) ;
+%     tmpMed{rep} = prctile(btspCommMed{rep},[2.5 97.5],2) ;
     
 end
 
 wsbm_highD_icc_c95 = tmpICC{1};
 mod_highD_icc_c95 = tmpICC{2};
 yeo_highD_icc_c95 = tmpICC{3};
+
+% wsbm_highD_med = [ (tmpMed{1}(:,1) - 0.1)  (tmpMed{1}(:,2) + 0.1) ] ;
+% mod_highD_med = [ (tmpMed{2}(:,1) - 0.1)  (tmpMed{2}(:,2) + 0.1) ] ;
+% yeo_highD_med = [ (tmpMed{3}(:,1) - 0.1)  (tmpMed{3}(:,2) + 0.1) ] ;
+
+% %% plot it
+% default_cmap = [0    0.4470    0.7410 ;
+%                 0.8500    0.3250    0.0980;
+%                 0.9290    0.6940    0.1250 ] ;
+% 
+% ddd = wsbm_highDappear_subjAll ;
+% ddd(ddd==0) = NaN ;            
+% 
+% % make different percentiles of the data          
+% fullrange = prctile(ddd,[0 100],2);  
+% p50 = prctile(ddd,[25 75],2);  
+% p25 = prctile(ddd,[37.5 62.5],2);  
+% med = prctile(ddd,[50 50],2);  
+% 
+% rb = rangebar(fullrange,0.8);
+% rb.FaceColor = default_cmap(1,:);
+% rb.EdgeAlpha = 0 ;
+% rb.FaceAlpha = 0.1 ;
+% 
+% ax = gca ;
+% 
+% rb2 = rangebar(ax,p50,0.7);
+% rb2.FaceColor = default_cmap(1,:);
+% rb2.EdgeAlpha = 0 ;
+% rb2.FaceAlpha = 0.2 ;
+% 
+% rb = rangebar(ax,p25,0.6);
+% rb.FaceColor = default_cmap(1,:);
+% rb.EdgeAlpha = 0 ;
+% rb.FaceAlpha = 0.3 ;
+% 
+% rb = rangebar(ax,med,0.9);
+% rb.FaceColor = default_cmap(1,:);
+% rb.EdgeAlpha = 0 ;
+% rb.FaceAlpha = 1 ;
+% 
+% % wsbm_highD_med = tmpMed{1} ;
+% % mod_highD_med = tmpMed{2} ;
+% % yeo_highD_med = tmpMed{3} ;
 
 %% make a table
 
@@ -313,14 +413,4 @@ writetable(multipleTablesSubj{2},fileName,'WriteRowNames',true)
 
 fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_yeo_subjAgg_stats.csv');
 writetable(multipleTablesSubj{3},fileName,'WriteRowNames',true)
-
-
-
-
-
-
-
-
-
-
 

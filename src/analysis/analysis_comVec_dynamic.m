@@ -309,7 +309,9 @@ anova1_stat_cos_mult = multcompare(anova2_stat_cos) ;
 [tt_h,tt_p,tt_ci,tt_stats] = ttest2(wsbm_vers',...
     mod_vers','vartype','unequal') ;
 
-% bootstrapping
+%% bootstrapping & perms
+
+emp_diff = wsbm_vers' - mod_vers' ;
 
 % get book indicies 
 nBoot = 500 ;
@@ -331,7 +333,49 @@ for idx = 1:nBoot
     mod_btsp_vers = get_nodal_versatility(mod_btsp_smpl) ;
     
     vers_btsp_res(:,idx) = wsbm_btsp_vers - mod_btsp_vers ;
+        
 end
+
+%% perms
+
+nPerms = 10000 ;
+permInd = randi([ 0 1 ] , [nPerms , sum(~modExclude)]) ; 
+
+comboCA1 = zeros([nNodes sum(~modExclude)]) ;
+comboCA2 = zeros([nNodes sum(~modExclude)]) ;
+
+permsRes = zeros([ nNodes nPerms ]);
+
+for idx = 1:nPerms 
+
+    disp(idx) 
+    
+    comboCA1(:,~~permInd(idx,:)) = wsbmCA(:,~~permInd(idx,:)) ;
+    comboCA1(:,~permInd(idx,:)) = modCA(:,~permInd(idx,:)) ;
+
+    comboCA2(:,~permInd(idx,:)) = wsbmCA(:,~permInd(idx,:)) ;
+    comboCA2(:,~~permInd(idx,:)) = modCA(:,~~permInd(idx,:)) ;
+    
+    tmp1 = get_nodal_versatility(comboCA1) ;
+    tmp2 = get_nodal_versatility(comboCA2) ;
+    
+    permsRes(:,idx) = tmp1 - tmp2 ;
+end
+
+pval_emp_diff = zeros([nNodes 1]) ;
+% permStruct.permPvalR2 = (sum(permDist > lsFitStruct.R2) + 1) / (permIter + 1) ;
+
+for idx = 1:nNodes
+    pval_emp_diff(idx) = (sum( abs(permsRes(idx,:)) > abs(emp_diff(idx)) ) + 1) / ( nPerms + 1) ; 
+end
+
+pval_bonf = 0.05 / nNodes ; 
+passBonf = pval_emp_diff < pval_bonf ;
+
+passBonfthr_emp_diff = emp_diff .* passBonf ;
+passBonfthr_emp_diff(passBonfthr_emp_diff == 0) = NaN ;
+
+%% gather info
 
 vers_btsp_CI = prctile(vers_btsp_res',[2.5 97.5])' ;
 
@@ -342,8 +386,18 @@ btsp_good_ci = ((vers_btsp_CI(:,1) < 0) & (vers_btsp_CI(:,2) < 0)) | ...
 btsp_mean_diff = btsp_good_ci .* mean(vers_btsp_res,2) ;
 btsp_mean_diff(btsp_mean_diff == 0) = NaN ;
 
-emp_diff = btsp_good_ci .* (wsbm_vers' - mod_vers') ;
-emp_diff(emp_diff == 0) = NaN ;
+emp_diff_pass = btsp_good_ci .* emp_diff ;
+emp_diff_pass(emp_diff_pass == 0) = NaN ;
+
+%% find vals in temporal
+
+lab = load('data/raw/NKIen1/yeo/nodeLabels.mat') ;  
+temp_idx = regexp(lab.nodeLabels,'.*Temp.*','once') ;
+temp_idx = ~cellfun(@isempty,temp_idx) ;
+
+mean(emp_diff_pass(temp_idx))
+
+[~,ind] = max(emp_diff_pass) ;
 
 %% save it
 
@@ -357,6 +411,8 @@ save(outName,...
     'totDensity',...
     'modExclude',...
     'wsbm_vers','mod_vers',...
-    'vers_btsp_CI','btsp_mean_diff','emp_diff',...
+    'vers_btsp_CI','btsp_mean_diff',...
+    'emp_diff','pval_emp_diff','btsp_good_ci','btsp_mean_diff',...
+    'passBonfthr_emp_diff',...
     ...
     '-v7.3')
