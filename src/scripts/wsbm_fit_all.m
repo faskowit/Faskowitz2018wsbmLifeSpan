@@ -111,23 +111,15 @@ avgTemp(avgTemp == 0) = NaN ;
 % setup the modelInputs var
 
 % Create a List of Model Inputs to test
- kIterOver = 7:1:11; %   
-%kIterOver = 12:1:13;
+ kIterOver = 7:1:12; %   
 
 %set up the cell struct to pass to the looper
 modelInputs = cell(numel(kIterOver),1); 
-    
+
 for idx = 1:numel(kIterOver)
     
     R_STRUCT_TO_TEST = sym_RStruct(kIterOver(idx)) ;
     
-%     modelInputs{idx} = { R_STRUCT_TO_TEST, ... 
-%         'W_Distr', WEIGHT_DIST, ...
-%         'E_Distr', EDGE_DIST, ...
-%         'alpha', INIT_ALPHA, ...
-%         'numTrials', LOOPER_NUM_TRIAL , ...
-%         'mainMaxIter', LOOPER_MAIN_ITER , ...
-%         'muMaxIter' , LOOPER_MU_ITER };
     modelInputs{idx} = { R_STRUCT_TO_TEST, ... 
         'W_Distr', WEIGHT_DIST, ...
         'E_Distr', EDGE_DIST, ...
@@ -145,20 +137,27 @@ numTrialPtrn = [ 250 100 100 100 100 100 100 100 100 100 100 ] ;
 % just put a 0 at the end so it doesnt mess it up
 prirPtrn = [ 1 1.5 2 2.5 3.0 3.5 4.0 4.5 5.0 5.5 0 ] ;
 
-% prirPtrn = [ 1:0.25:4.5 0 ] ;
-% numTrialPtrn = [ 250 repmat(100,1,15) ] ;
+% tmp testing stuff
+% numTrial = 250 ;
+% tmp = modelInputs{4}
+% [~,tmp_model] = wsbm(avgTemp, tmp{:}, 'numTrials', 15) ;  
+% dist = setup_distr('LogNormal',...
+%     [   nanmean(log(avgTemp(:))) , ...
+%         nanvar(log(avgTemp(:)))+nanmean(log(avgTemp(:)))^2 ,...
+%         0.1 ], ...
+%         1) ;
 
 %% k looper part
 % iterate over num communities, k, to find out which k give best evidence
 
 [ kLooperResults , kLooperModels ] = wsbm_looper_wrapper(avgTemp, ...
     modelInputs, ...
-    LOOPER_ITER, ...
-    [], numTrialPtrn,...
+    LOOPER_ITER, [], numTrialPtrn,...
     prirPtrn) ;
 
-% save this, so that we can reconstruct kLooper results if needed, ~200Mb
-save(strcat(OUTPUT_DIR , '/interim/', OUTPUT_STR, '_kLooperModels.mat' ), 'kLooperModels')
+% save this if needed 
+% so that we can reconstruct kLooper results if needed, ~200Mb
+% save(strcat(OUTPUT_DIR , '/interim/', OUTPUT_STR, '_kLooperModels.mat' ), 'kLooperModels')
 
 %% now figure out which k is best! 
 

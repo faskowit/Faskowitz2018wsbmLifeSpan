@@ -38,9 +38,12 @@ end
 
 % WSBM options
 % distributions 
-WEIGHT_DIST = 'normal' ; 
+
+% lets define the lognormal later via empircal bayes
+WEIGHT_DIST ='lognormal' ; 
 %EDGE_DIST = 'poisson' ; 
-EDGE_DIST = setup_distr('poisson',[0,0.01]) ;
+% start with spare assumption
+EDGE_DIST = setup_distr('geometric') ;
 % default params
 %EDGE_DIST = setup_distr('poisson',[0,0.001]);
 
