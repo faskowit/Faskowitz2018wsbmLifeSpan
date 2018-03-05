@@ -144,11 +144,12 @@ for idx = 1:nSubj
 end
 
 wsbm_subj_len = mean(wsbm_com_totLen,1) ;
-mod_subj_len = mean(mod_com_totDist,1);
+mod_subj_len = mean(mod_com_totLen,1);
 
 wsbm_subj_dist = mean(wsbm_com_totDist,1) ;
 mod_subj_dist = mean(mod_com_totDist,1) ;
 
+[a,b,c,d] = ttest2(wsbm_subj_dist,mod_subj_dist,'Vartype','unequal')
 
 % wsbm community structure necessitates much more streamline length
 

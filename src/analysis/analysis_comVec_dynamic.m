@@ -285,6 +285,8 @@ for idx=1:age_bins
     mod_agebin_vers(:,idx) = get_nodal_versatility(subjModCA2(:,templateIdMat2(:,idx))) ; 
 end
 
+
+
 %% some sort of comparison between the cos and cb overall
 
 [~,tb1,anova2_stat_cb] = anova2([wsbm_weiVec_cb(~modExclude)' mod_weiVec_cb(~modExclude)' ],1,'off') ;
@@ -416,3 +418,170 @@ save(outName,...
     'passBonfthr_emp_diff',...
     ...
     '-v7.3')
+
+
+%% get agreement matrices
+
+wsbm_agree = agreement(subjWsbmCA2) ./ size(subjWsbmCA2,2) ;
+mod_agree = agreement(subjModCA2) ./ size(subjModCA2,2) ;
+
+[~,wsbm_avgProb ] = get_block_mat(wsbm_agree, comVecs.wsbm) ;
+[~,mod_avgProb ] = get_block_mat(mod_agree, comVecs.mod) ;
+
+
+%% test viz
+
+% inputAgreeData = cell([2 1]) ;
+% inputAgreeData{1} = wsbm_agree ;
+% inputAgreeData{2} = mod_agree ;
+% 
+% nNodes = templateModel.Data.n ;
+% nComm = templateModel.R_Struct.k ; 
+% 
+% parcels = {'wsbm' 'mod' };
+% parcelName = {'WSBM' 'Modular'} ;
+% 
+% % % get the template data
+% % templateData = templateModel.Data.Raw_Data ;
+% % templateData(isnan(templateData)) = 0;
+% % 
+% % % scramble
+% % scrmb = randperm(nNodes);
+% % templateData = templateData(scrmb,scrmb) ;
+% % %comLabels = comVecs.wsbm(scrmb) ;
+% 
+% nComm4ColorMap = templateModel.R_Struct.k ;
+% 
+% for fig = 1:length(parcels)
+% %for fig = 3
+%  
+%     figure
+%     
+%     comLabels = comVecs.((lower(parcels{fig}))) ;    
+%     comLabels = CBIG_HungarianClusterMatch(comVecs.wsbm,comLabels);
+%     comLabels = comLabels(scrmb);
+%     
+%     nComm = length(unique(comLabels)) ;
+%     uniqueLab = unique(comLabels) ;
+%     
+%     [xOnDiag,yOnDiag,sortIdx] = grid_communities(comLabels);
+% 
+%     % code from WSBM stuffs
+%     A_sort = zeros(nNodes);
+%     list = zeros(1,nNodes);
+%     breaks = zeros(1,nComm);
+%     cur = 1;
+%     for idx = 1:nComm
+%         indicies = find(comLabels == uniqueLab(idx));
+%         
+%         if isempty(indicies)
+%          
+%             list(cur) = [] ; %list(cur:cur+length(indicies)-1) = indicies;
+%             cur = 0 ;%cur + length(indicies);
+%             breaks(idx) = cur ;%cur-1;
+%             
+%         end
+%         
+%         list(cur:cur+length(indicies)-1) = indicies;
+%         cur = cur + length(indicies);
+%         breaks(idx) = cur-1;
+%     end
+%     for idx = 1:nNodes
+%         A_sort(idx,:) = inputAgreeData{fig}(list(idx),list);
+%     end
+% 
+%     %Plot the Matrix
+%     h = imagesc(A_sort,[min(A_sort(:))-.00001,max(A_sort(:))]);
+%     colormap(brewermap(nComm,'BuPu'))
+%     %set(h,'alphadata',(A_sort > 0) .* 0.15);
+% 
+%     % fix image properties 
+%     ax = gca ;
+%     axis square
+%     % axis([0.5 (nNodes+0.5) 0.5 (nNodes+0.5)]); 
+%     % ax.Box = 'on' ;
+%     % set(ax,'Ydir','reverse');
+%     % set(ax,'ytick',[])
+%     % set(ax,'xtick',[])
+% 
+%     hold on
+% 
+%     % plot off diagonal
+%     for idx = 1:(nComm-1)
+% 
+%         lineWidth = 1.5;
+%         offDiagColor = [1 0 0 0.25] ; 
+% 
+%         % vertical   
+%         plot([breaks(idx)+0.5,breaks(idx)+0.5],[breaks(idx+1)+0.5,breaks(nComm)+.5],...
+%             'Color',offDiagColor,'LineWidth',lineWidth);
+%         if idx > 1
+%             plot([breaks(idx)+0.5,breaks(idx)+0.5],[-0.5,breaks(idx-1)+0.5],...
+%                 'Color',offDiagColor,'LineWidth',lineWidth);
+%         end
+% 
+%         % horizontal
+%         plot([breaks(idx+1)+0.5,breaks(nComm)+.5],[breaks(idx)+.5,breaks(idx)+.5],...
+%             'Color',offDiagColor,'LineWidth',lineWidth);
+%         if idx > 1
+%             plot([-.5,breaks(idx-1)+.5],[breaks(idx)+.5,breaks(idx)+.5],...
+%                 'Color',offDiagColor,'LineWidth',lineWidth);
+%         end
+% 
+%     end      
+% 
+%     % MAKE THIS TEN...
+%     cmap_mod = brewermap(nComm4ColorMap,'paired') ;
+% 
+%     for idx=0:(nComm-1)
+% 
+%         plot(xOnDiag( (idx*6)+1:((idx+1)*6) ) ,...
+%             yOnDiag(  (idx*6)+1:((idx+1)*6) ) ,...
+%             'Color',cmap_mod(uniqueLab(idx+1),:),'linewidth',3.5)
+%     end
+% 
+%     % compute some yticks
+%     breaks2 = [ 0 breaks ] ;
+%     midlabelpoint = zeros([nComm 1]);
+%     for idx = 1:length(breaks)
+%         midlabelpoint(idx) = floor( (breaks2(idx+1) - breaks2(idx)) / 2) + breaks2(idx);  
+%     end
+% 
+%     set(ax,'xtick',midlabelpoint)
+%     set(ax,'xticklabel',uniqueLab)
+%     set(ax,'ticklength',[ 0 0]) 
+% 
+%     set(ax,'ytick',midlabelpoint)
+%     set(ax,'yticklabel',uniqueLab)
+%     set(ax,'ticklength',[ 0 0]) 
+% 
+%     set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.8]);
+% 
+%     ax.Title.String = { parcelName{fig}, ' community colors'};
+%     ax.TitleFontSizeMultiplier = 1.5 ;
+% 
+% %     % save it
+% %     fileName = strcat(parcels{fig},'_commView.png');
+% %     ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+% %     %set(gcf,'paperpositionmode','auto');
+% %     print(gcf,'-dpng','-r500',ff);
+% %     close(gcf)
+%     
+% end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

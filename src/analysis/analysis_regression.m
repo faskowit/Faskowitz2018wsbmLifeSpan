@@ -1,7 +1,7 @@
 clc
 clearvars
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -9,10 +9,7 @@ run(config_file);
 outIntermPrefix = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR);
 outProcessPrefix = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR);
 
-%load('data/processed/yeo_both_normalpoisson_a0p5_fit_wsbm_script_v7p3.mat')
-%load('data/interim/yeo_both_normalpoisson_a0p5_comVecs.mat')
 load(strcat(outIntermPrefix,'_comVecs.mat'))
-%load('data/interim/subj_dataStruct.mat')
 load(strcat(outIntermPrefix,'_templateModel_1.mat'))
 load(strcat(outProcessPrefix,'_basicData_v7p3.mat'))
 
@@ -32,7 +29,7 @@ load(strcat(outProcessPrefix,'_basicData_v7p3.mat'))
 ca_wsbm = community_assign(templateModel) ;
 
 wsbm_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
-    ca_wsbm(:,2), selectNodesFrmRaw, 1, 1, 'countVolNormMat');
+    ca_wsbm(:,2), selectNodesFrmRaw, 0, 1, 'countVolNormMat');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -64,34 +61,34 @@ mod_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% yeo communities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-load('data/external/seven_network.mat')
-% add the temporal parietal to default mode
-mu_yeo7 = seven_network ;
-mu_yeo7(7,57) = 1 ;
-mu_yeo7(7,114) = 1 ;
-ca_yeo = community_assign(mu_yeo7);
-
-% nope
-% % align labels
-%ca_yeo(:,2) = CBIG_HungarianClusterMatch(ca_wsbm(:,2),ca_yeo(:,2));
-
-yeo_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
-    ca_yeo(:,2), selectNodesFrmRaw, 0, 1, 'countVolNormMat');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % yeo communities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% load('data/external/seven_network.mat')
+% % add the temporal parietal to default mode
+% mu_yeo7 = seven_network ;
+% mu_yeo7(7,57) = 1 ;
+% mu_yeo7(7,114) = 1 ;
+% ca_yeo = community_assign(mu_yeo7);
+% 
+% % nope
+% % % align labels
+% %ca_yeo(:,2) = CBIG_HungarianClusterMatch(ca_wsbm(:,2),ca_yeo(:,2));
+% 
+% yeo_gatherStruct = ma_gather_data2(dataStruct, datasetDemo, ...
+%     ca_yeo(:,2), selectNodesFrmRaw, 0, 1, 'countVolNormMat');
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% output the comVecs file
 
 comVecs = struct() ;
 comVecs.wsbm = ca_wsbm(:,2) ;
 comVecs.mod = ca_mod(:,2) ;
-comVecs.yeo = ca_yeo(:,2) ;
+% comVecs.yeo = ca_yeo(:,2) ;
 % 
-% outName = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR, '_comVecs.mat');
-% save(outName,...
-%     'comVecs',...
-%     '-v7.3')
+outName = strcat(OUTPUT_DIR, '/interim/', OUTPUT_STR, '_comVecs.mat');
+save(outName,...
+    'comVecs',...
+    '-v7.3')
 
 %% REGRESSIONS
 
@@ -99,7 +96,7 @@ fits = {'linear' 'quadratic' 'poisson' } ;
 numBlocks = templateModel.R_Struct.k ;
 
 % these get passed into regression func
-otherArgs = {1 500 [] 10000 };
+otherArgs = {1 500 [] [] };
 
 % predictor
 X = datasetDemo.age ;
@@ -109,26 +106,26 @@ X = datasetDemo.age ;
 % regressions with sex + totDen as covariates
 wsbm_rdens_statMat = run_regression_over_yMat(X,wsbm_gatherStruct.rdens,fits,otherArgs) ;
 mod_rdens_statMat = run_regression_over_yMat(X,mod_gatherStruct.rdens,fits,otherArgs) ;
-yeo_rdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdens,fits,otherArgs) ;
+% yeo_rdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdens,fits,otherArgs) ;
 
 % regressions with sex + totDen + movement as covariates
 wsbm_rmdens_statMat = run_regression_over_yMat(X,wsbm_gatherStruct.rmdens,fits,otherArgs) ;
 mod_rmdens_statMat = run_regression_over_yMat(X,mod_gatherStruct.rmdens,fits,otherArgs) ;
-yeo_rmdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rmdens,fits,otherArgs) ;
+% yeo_rmdens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rmdens,fits,otherArgs) ;
 
-%% dont run permuations for these tests to speed up
-
+% %% dont run permuations for these tests to speed up
+% 
 otherArgs = {1 500 [] [] };
 
 % regressions with just dens
 wsbm_dens_statMat = run_regression_over_yMat(X,wsbm_gatherStruct.dens,fits,otherArgs) ;
 mod_dens_statMat = run_regression_over_yMat(X,mod_gatherStruct.dens,fits,otherArgs) ;
-yeo_dens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.dens,fits,otherArgs) ;
+% yeo_dens_statMat = run_regression_over_yMat(X,yeo_gatherStruct.dens,fits,otherArgs) ;
 
 % regressions with eb density + sex + totDen as covariates
 wsbm_rdenseb_statMat = run_regression_over_yMat(X,wsbm_gatherStruct.rdenseb,fits,otherArgs) ;
 mod_rdenseb_statMat = run_regression_over_yMat(X,mod_gatherStruct.rdenseb,fits,otherArgs) ;
-yeo_rdenseb_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdenseb,fits,otherArgs) ;
+% yeo_rdenseb_statMat = run_regression_over_yMat(X,yeo_gatherStruct.rdenseb,fits,otherArgs) ;
 
 %% save it
 

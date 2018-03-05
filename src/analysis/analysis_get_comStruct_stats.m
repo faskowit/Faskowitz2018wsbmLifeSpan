@@ -42,6 +42,34 @@ commSizes = histcounts(sort(comVecs.wsbm));
 % mod_highDappear = histc(comVecs.mod(highD_node),1:nComm) ;
 % yeo_highDappear = histc(comVecs.yeo(highD_node),1:nComm) ;
 
+%% print info about the nodes in each community vect
+
+labNames = load('data/raw/NKIen1/yeo/nodeLabels.mat') ;
+labNames = labNames.nodeLabels ;
+labNames = regexprep(labNames,'.*17Networks_','') ;
+labNames = regexprep(labNames,'.label','') ;
+
+% wsbm
+[wsbm_sort,wsbm_sort_idx] = sort(comVecs.wsbm);
+comm_tbl = table();
+comm_tbl.WSBM_community = wsbm_sort ;
+comm_tbl.WSBM_node_name =  labNames(wsbm_sort_idx) ;
+
+% mod
+[mod_sort,mod_sort_idx] = sort(comVecs.mod);
+comm_tbl.Modular_community = mod_sort ;
+comm_tbl.Modular_node_name =  labNames(mod_sort_idx)  ;
+
+% yeo
+% realign to match figs
+tmp_yeo = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.yeo) ;
+[yeo_sort,yeo_sort_idx] = sort(tmp_yeo);
+comm_tbl.Yeo_community = yeo_sort ;
+comm_tbl.Yeo_node_name =  labNames(yeo_sort_idx) ;
+
+fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_node_comm.csv');
+writetable(comm_tbl,fileName,'WriteRowNames',true)
+
 %% gather the subject-level data
 
 subjDataMat = zeros([ nNodes nNodes nSubj ]);

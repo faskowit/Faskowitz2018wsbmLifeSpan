@@ -36,20 +36,20 @@ totDensity = zeros([ nSubj 1 ]);
 
 blockVec_wsbm = zeros([nBlockInteract nSubj]);
 blockVec_mod = zeros([nBlockInteract nSubj]) ;
-blockVec_yeo = zeros([nBlockInteract_yeo nSubj]);
+% blockVec_yeo = zeros([nBlockInteract_yeo nSubj]);
 
 avgBlockVec_wsbm = zeros([nBlockInteract nSubj]);
 avgBlockVec_mod = zeros([nBlockInteract nSubj]) ;
-avgBlockVec_yeo = zeros([nBlockInteract_yeo nSubj]);
+% avgBlockVec_yeo = zeros([nBlockInteract_yeo nSubj]);
 
 binBlockVec_wsbm = zeros([nBlockInteract nSubj]);
 binBlockVec_mod = zeros([nBlockInteract nSubj]) ;
-binBlockVec_yeo = zeros([nBlockInteract_yeo nSubj]);
+% binBlockVec_yeo = zeros([nBlockInteract_yeo nSubj]);
 
 %% also community convec
 com_avgBlockVec_wsbm = zeros([nBlocks nBlocks nSubj]);
 com_avgBlockVec_mod = zeros([nBlocks nBlocks nSubj]) ;
-com_avgBlockVec_yeo = zeros([7 7 nSubj]);
+% com_avgBlockVec_yeo = zeros([7 7 nSubj]);
 
 %% iterate
 for idx = 1:nSubj
@@ -84,13 +84,13 @@ for idx = 1:nSubj
 
     com_avgBlockVec_mod(:,:,idx) = avgtmpbl;
     
-    % yeo    
-    [tmpBl,avgtmpbl,~,bintmpbl] = get_block_mat(tmpAdj,comVecs.yeo);
-    blockVec_yeo(:,idx) = tmpBl(getIdxYeo);
-    avgBlockVec_yeo(:,idx) = avgtmpbl(getIdxYeo);
-    binBlockVec_yeo(:,idx) = bintmpbl(getIdxYeo);
-    
-    com_avgBlockVec_yeo(:,:,idx) = avgtmpbl ;
+%     % yeo    
+%     [tmpBl,avgtmpbl,~,bintmpbl] = get_block_mat(tmpAdj,comVecs.yeo);
+%     blockVec_yeo(:,idx) = tmpBl(getIdxYeo);
+%     avgBlockVec_yeo(:,idx) = avgtmpbl(getIdxYeo);
+%     binBlockVec_yeo(:,idx) = bintmpbl(getIdxYeo);
+%     
+%     com_avgBlockVec_yeo(:,:,idx) = avgtmpbl ;
     
 end
   
@@ -114,28 +114,28 @@ wsbm_weiVec_predict(isnan(wsbm_weiVec_predict)) = 0;
 mod_weiVec_empir = mod_weiVec_empir(getIdx);
 [~,mod_weiVec_empir_sqr] = make_square(mod_weiVec_empir);
 
-% and yeo
-[~,yeo_weiVec_empir] = get_block_mat(templateData,comVecs.yeo);
-yeo_weiVec_empir = yeo_weiVec_empir(getIdxYeo);
-[~,yeo_weiVec_empir_sqr] = make_square(yeo_weiVec_empir);
+% % and yeo
+% [~,yeo_weiVec_empir] = get_block_mat(templateData,comVecs.yeo);
+% yeo_weiVec_empir = yeo_weiVec_empir(getIdxYeo);
+% [~,yeo_weiVec_empir_sqr] = make_square(yeo_weiVec_empir);
 
 %% community pattern vars
 
 wsbm_comms_weiVec_corr = zeros([nBlocks nSubj]) ;
 mod_comms_weiVec_corr = zeros([nBlocks nSubj]) ;
-yeo_comms_weiVec_corr = zeros([7 nSubj]) ;
+% yeo_comms_weiVec_corr = zeros([7 nSubj]) ;
 
 wsbm_comms_weiVec_cb = zeros([nBlocks nSubj]) ;
 mod_comms_weiVec_cb = zeros([nBlocks nSubj]) ;
-yeo_comms_weiVec_cb = zeros([7 nSubj]) ;
+% yeo_comms_weiVec_cb = zeros([7 nSubj]) ;
 
 wsbm_comms_weiVec_eud = zeros([nBlocks nSubj]) ;
 mod_comms_weiVec_eud = zeros([nBlocks nSubj]) ;
-yeo_comms_weiVec_eud = zeros([7 nSubj]) ;
+% yeo_comms_weiVec_eud = zeros([7 nSubj]) ;
 
 wsbm_comms_weiVec_cos = zeros([nBlocks nSubj]) ;
 mod_comms_weiVec_cos = zeros([nBlocks nSubj]) ;
-yeo_comms_weiVec_cos = zeros([7 nSubj]) ;
+% yeo_comms_weiVec_cos = zeros([7 nSubj]) ;
 
 %% iterate
 for idx = 1:nSubj
@@ -146,21 +146,21 @@ for idx = 1:nSubj
         'type',corrStr) ;
     mod_weiVec_corr(idx) = corr(mod_weiVec_empir,avgBlockVec_mod(:,idx),...
         'type',corrStr) ;
-    yeo_weiVec_corr(idx) = corr(yeo_weiVec_empir,avgBlockVec_yeo(:,idx),...
-        'type',corrStr) ;
+%     yeo_weiVec_corr(idx) = corr(yeo_weiVec_empir,avgBlockVec_yeo(:,idx),...
+%         'type',corrStr) ;
     
     % other distances   
     wsbm_weiVec_cb(idx) = pdist([wsbm_weiVec_predict' ; avgBlockVec_wsbm(:,idx)'],'cityblock') ;
     mod_weiVec_cb(idx) = pdist([mod_weiVec_empir' ; avgBlockVec_mod(:,idx)'],'cityblock') ;
-    yeo_weiVec_cb(idx) = pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'cityblock') ;
+%     yeo_weiVec_cb(idx) = pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'cityblock') ;
 
     wsbm_weiVec_eud(idx) = pdist([wsbm_weiVec_predict' ; avgBlockVec_wsbm(:,idx)'],'euclidean') ;
     mod_weiVec_eud(idx) = pdist([mod_weiVec_empir' ; avgBlockVec_mod(:,idx)'],'euclidean') ;
-    yeo_weiVec_eud(idx) = pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'euclidean') ;
+%     yeo_weiVec_eud(idx) = pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'euclidean') ;
     
     wsbm_weiVec_cos(idx) = 1 - pdist([wsbm_weiVec_predict' ; avgBlockVec_wsbm(:,idx)'],'cosine') ;
     mod_weiVec_cos(idx) = 1 - pdist([mod_weiVec_empir' ; avgBlockVec_mod(:,idx)'],'cosine') ;
-    yeo_weiVec_cos(idx) = 1 - pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'cosine') ;
+%     yeo_weiVec_cos(idx) = 1 - pdist([yeo_weiVec_empir' ; avgBlockVec_yeo(:,idx)'],'cosine') ;
     
     % distances of each community
     for jdx=1:nBlocks
@@ -196,27 +196,32 @@ for idx = 1:nSubj
             'cosine') ; 
     end
     
-    % need to change the num blocks to iter over for yeo
-    for jdx=1:7    
-        yeo_comms_weiVec_corr(jdx,idx) = corr(yeo_weiVec_empir_sqr(:,jdx),...
-            com_avgBlockVec_yeo(:,jdx,idx),...
-            'type',corrStr) ;
-        yeo_comms_weiVec_cb(jdx,idx) = pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
-            com_avgBlockVec_yeo(:,jdx,idx)'],...
-            'cityblock') ; 
-        yeo_comms_weiVec_eud(jdx,idx) = pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
-            com_avgBlockVec_yeo(:,jdx,idx)'],...
-            'euclidean') ; 
-        yeo_comms_weiVec_cos(jdx,idx) = 1 -  pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
-            com_avgBlockVec_yeo(:,jdx,idx)'],...
-            'cosine') ;
-    end
+%     % need to change the num blocks to iter over for yeo
+%     for jdx=1:7    
+%         yeo_comms_weiVec_corr(jdx,idx) = corr(yeo_weiVec_empir_sqr(:,jdx),...
+%             com_avgBlockVec_yeo(:,jdx,idx),...
+%             'type',corrStr) ;
+%         yeo_comms_weiVec_cb(jdx,idx) = pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
+%             com_avgBlockVec_yeo(:,jdx,idx)'],...
+%             'cityblock') ; 
+%         yeo_comms_weiVec_eud(jdx,idx) = pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
+%             com_avgBlockVec_yeo(:,jdx,idx)'],...
+%             'euclidean') ; 
+%         yeo_comms_weiVec_cos(jdx,idx) = 1 -  pdist([yeo_weiVec_empir_sqr(:,jdx)' ; ...
+%             com_avgBlockVec_yeo(:,jdx,idx)'],...
+%             'cosine') ;
+%     end
 end
 
 %% some sort of comparison between the cos and cb overall
 
-[~,tb1,anova2_stat_cb] = anova2([wsbm_weiVec_cb' mod_weiVec_cb' yeo_weiVec_cb'],1,'off') ;
-[~,tb2,anova2_stat_cos] = anova2([wsbm_weiVec_cos' mod_weiVec_cos' yeo_weiVec_cos'],1,'off') ;
+% [~,tb1,anova2_stat_cb] = anova2([wsbm_weiVec_cb' mod_weiVec_cb' yeo_weiVec_cb'],1,'off') ;
+% [~,tb2,anova2_stat_cos] = anova2([wsbm_weiVec_cos' mod_weiVec_cos' yeo_weiVec_cos'],1,'off') ;
+% [~,tb1,anova2_stat_cb] = anova2([wsbm_weiVec_cb' mod_weiVec_cb'],1,'off') ;
+% [~,tb2,anova2_stat_cos] = anova2([wsbm_weiVec_cos' mod_weiVec_cos' ],1,'off') ;
+[a,b,c,d] = ttest2(wsbm_weiVec_cb,mod_weiVec_cb,'Vartype','unequal')
+[a,b,c,d] = ttest2(wsbm_weiVec_cos,mod_weiVec_cos,'Vartype','unequal')
+
 
 % % same as above
 % [~,tb12] = anova_rm([wsbm_weiVec_cb' mod_weiVec_cb' yeo_weiVec_cb'],'off') ;

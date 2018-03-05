@@ -5,7 +5,7 @@ clearvars
 
 %% load the necessary data
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -22,7 +22,7 @@ load(loadName) ;
 loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_basicData_v7p3.mat');
 load(loadName) ;
 
-FIGURE_NAME = 'figC' ;
+FIGURE_NAME = 'figC_supp' ;
 
 outputdir = strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/');
 mkdir(outputdir)
@@ -44,17 +44,17 @@ muMod = dummyvar(comVecs.mod)' ;
     'mu_0', muMod , ...
     'verbosity', 0);
 
-tmpYeo = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.yeo) ;
-muYeo = dummyvar(tmpYeo)' ;
-muYeo = muYeo(sum(muYeo,2)>0,:) ;
-
-[~,yeoModel] = wsbm(templateModel.Data.Raw_Data, ...
-    sym_RStruct(7), ...
-    'W_Distr', templateModel.W_Distr, ...
-    'E_Distr', templateModel.E_Distr, ...
-    'alpha', templateModel.Options.alpha, ...
-    'mu_0', muYeo , ...
-    'verbosity', 0);
+% tmpYeo = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.yeo) ;
+% muYeo = dummyvar(tmpYeo)' ;
+% muYeo = muYeo(sum(muYeo,2)>0,:) ;
+% 
+% [~,yeoModel] = wsbm(templateModel.Data.Raw_Data, ...
+%     sym_RStruct(7), ...
+%     'W_Distr', templateModel.W_Distr, ...
+%     'E_Distr', templateModel.E_Distr, ...
+%     'alpha', templateModel.Options.alpha, ...
+%     'mu_0', muYeo , ...
+%     'verbosity', 0);
 
 % % empircal edge existence and edge weights
 % [~,modModel_w,~,modModel_e] = get_block_mat(templateAdj,comVecs.mod);
@@ -67,19 +67,19 @@ muYeo = muYeo(sum(muYeo,2)>0,:) ;
 
 %% try out the evalWSBM code
 
-% nNodes = templateModel.Data.n ;
-% 
-% templateSubj_data = dataStruct(datasetDemo.age > 25 & datasetDemo.age <= 35) ;
-% [a,b,avgTemp_dist] = make_template_mat(templateSubj_data, ...
-%     LEFT_HEMI_NODES, ...
-%     RIGHT_HEMI_NODES, ...
-%     MASK_THR_INIT) ; 
-% 
-% % actually replace the 0's with NaN
-% %avgTemp(avgTemp == 0) = NaN ;
-% avgTemp_dist = avgTemp_dist(selectNodesFrmRaw,selectNodesFrmRaw);
-% % clear diagonal
-% avgTemp_dist(1:nNodes+1:end)=0; 
+nNodes = templateModel.Data.n ;
+
+templateSubj_data = dataStruct(datasetDemo.age > 25 & datasetDemo.age <= 35) ;
+[a,b,avgTemp_dist] = make_template_mat(templateSubj_data, ...
+    LEFT_HEMI_NODES, ...
+    RIGHT_HEMI_NODES, ...
+    MASK_THR_INIT) ; 
+
+% actually replace the 0's with NaN
+%avgTemp(avgTemp == 0) = NaN ;
+avgTemp_dist = avgTemp_dist(selectNodesFrmRaw,selectNodesFrmRaw);
+% clear diagonal
+avgTemp_dist(1:nNodes+1:end)=0; 
 
 %% eval gen call
 
@@ -94,16 +94,19 @@ muYeo = muYeo(sum(muYeo,2)>0,:) ;
 [eval_wsbmRand_B,eval_wsbmRand_E,eval_wsbmRand_K] = eval_genWsbm_model1(templateModel,avgTemp_dist,10000,1);
 [eval_modRand_B,eval_modRand_E,eval_modRand_K] = eval_genWsbm_model1(modularityModel,avgTemp_dist,10000,1);
 
-% add yeo
-[eval_yeo_B,eval_yeo_E,eval_yeo_K,eval_yeo_EMD] = eval_genWsbm_model1(yeoModel,avgTemp_dist,10000,0);
-[eval_yeoRand_B,eval_yeoRand_E,eval_yeoRand_K] = eval_genWsbm_model1(yeoModel,avgTemp_dist,10000,1);
-
+% % add yeo
+% [eval_yeo_B,eval_yeo_E,eval_yeo_K,eval_yeo_EMD] = eval_genWsbm_model1(yeoModel,avgTemp_dist,10000,0);
+% [eval_yeoRand_B,eval_yeoRand_E,eval_yeoRand_K] = eval_genWsbm_model1(yeoModel,avgTemp_dist,10000,1);
 
 % load(strcat(PROJECT_DIR,'/data/processed/',OUTPUT_STR,'_evalGenReps.mat'))
 save(strcat(PROJECT_DIR,'/data/processed/',OUTPUT_STR,'_evalGenReps.mat'),...
     'eval_wsbm_K','eval_wsbmRand_K','eval_wsbm_EMD',...
     'eval_mod_K','eval_modRand_K','eval_mod_EMD' ...
      )
+% save(strcat(PROJECT_DIR,'/data/processed/',OUTPUT_STR,'_evalGenReps.mat'),...
+%     'eval_wsbm_K','eval_wsbm_EMD',...
+%     'eval_mod_K','eval_mod_EMD' ...
+%      )
 
 %% plot energy 
 

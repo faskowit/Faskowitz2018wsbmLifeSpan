@@ -1,7 +1,7 @@
 clc 
 clearvars
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -34,10 +34,10 @@ regResultsCov_cos = cell([3 1]) ;
 regResultsCovWMov_cos = cell([3 1]) ;
 regResultsNoCov_cos = cell([3 1]) ;
 
-regInputs = cell([3 1]);
+regInputs = cell([2 1]);
 regInputs{1} = wsbm_weiVec_cos;
 regInputs{2} = mod_weiVec_cos;
-regInputs{3} = yeo_weiVec_cos;
+% regInputs{3} = yeo_weiVec_cos;
 
 for idx = 1:length(regInputs)
         
@@ -100,10 +100,10 @@ regResultsCov_cb = cell([3 1]) ;
 regResultsCovWMov_cb = cell([3 1]) ;
 regResultsNoCov_cb = cell([3 1]) ;
 
-regInputs = cell([3 1]);
+regInputs = cell([2 1]);
 regInputs{1} = wsbm_weiVec_cb;
 regInputs{2} = mod_weiVec_cb;
-regInputs{3} = yeo_weiVec_cb;
+% regInputs{3} = yeo_weiVec_cb;
 
 for idx = 1:length(regInputs)
         

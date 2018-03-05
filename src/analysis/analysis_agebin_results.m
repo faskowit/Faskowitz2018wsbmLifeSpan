@@ -19,6 +19,9 @@ load(loadName) ;
 loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_agebin_template_results_v7p3.mat');
 load(loadName) ;
 
+loadName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_basicData_v7p3.mat');
+load(loadName) ;
+
 %% initial data stuff
 
 % number of actual groups is thresholds + 1
@@ -153,13 +156,188 @@ end
 %     
 % end
 
+%% subj data
+
+nSubj = length(dataStruct) ;
+
+subjDataMat = zeros([nNodes nNodes nSubj]) ;
+
+for idx = 1:nSubj
+    
+    tmpAdj = dataStruct(idx).countVolNormMat(selectNodesFrmRaw, selectNodesFrmRaw);
+    % get rid of the diagonal
+    %n=size(tmpAdj,1);
+    tmpAdj(1:nNodes+1:end) = 0; 
+    % mask out AdjMat entries below mask_thr
+    tmpAdj_mask = dataStruct(idx).countMat(selectNodesFrmRaw, selectNodesFrmRaw) > 1 ;    
+    tmpAdj_mask(tmpAdj_mask > 0) = 1 ;   
+    tmpAdj = tmpAdj .* tmpAdj_mask ;
+
+    subjDataMat(:,:,idx) = tmpAdj ;
+
+end
+
+%% create the regressions at each agebin
+
+wsbm_avgBlock_cell = cell([age_bins 1]) ;
+wsbm_vec_dist_cos_cell = cell([age_bins 1]) ;
+wsbm_vec_dist_cb_cell = cell([age_bins 1]) ;
+
+for idx = 1:age_bins
+    
+    %ageBinData = fitWSBMAllStruct(~~templateIdMat(:,idx));
+    ageBinTemplate = consensusCrossIdx{idx} ;
+    [~,abt_comVec] = community_assign(ageBinTemplate) ;
+   
+    nBlocks = ageBinTemplate.R_Struct.k ;
+    nNodes = ageBinTemplate.Data.n ;
+    getIdx = ~~triu(ones(nBlocks));
+    nBlockInteract = sum(sum(getIdx)) ;
+
+    wsbm_weiVec_predict =  ageBinTemplate.Para.predict_e .*  ageBinTemplate.Para.predict_w; 
+    wsbm_weiVec_predict(isnan(wsbm_weiVec_predict)) = 0;
+    [~,wsbm_weiVec_predict_sqr] = make_square(wsbm_weiVec_predict);
+    
+    wsbm_avgBlock_cell{idx} = zeros([nBlockInteract nSubj]);
+
+    wsbm_vec_dist_cos_cell{idx} = zeros([nSubj 1]) ;
+    wsbm_vec_dist_cb_cell{idx} = zeros([nSubj 1]);
+    
+    %% iterate
+    for sub = 1:nSubj
+
+        tmpAdj = subjDataMat(:,:,sub) ;
+
+        % wsbm
+        [~,avgtmpbl] = get_block_mat(tmpAdj,abt_comVec);
+        wsbm_avgBlock_cell{idx}(:,sub) = avgtmpbl(getIdx);
+
+        wsbm_vec_dist_cb_cell{idx}(sub) = pdist([wsbm_weiVec_predict' ; wsbm_avgBlock_cell{idx}(:,sub)'],'cityblock') ;
+        wsbm_vec_dist_cos_cell{idx}(sub) = 1 - pdist([wsbm_weiVec_predict' ; wsbm_avgBlock_cell{idx}(:,sub)'],'cosine') ;
+        
+    end
+
+end
+
+funcArgs = {1 500 [] 0 } ;
+%funcArgs = {1 2 [] 0 } ;
+
+fits = {'linear' 'quadratic' 'poisson'} ;
+
+xVec = datasetDemo.age;
+
+ageBin_regress_cos = cell([age_bins 1]) ;
+ageBin_regress_cb = cell([age_bins 1]) ;
+
+for idx = 1:age_bins
+        
+    % setup results for wsbm, mod, yeo....
+    ageBin_regress_cos{idx} = cell([ length(fits) 1]);
+    ageBin_regress_cb{idx} = cell([ length(fits) 1]);
+        
+    for jdx = 1:length(fits)
+    
+        disp(jdx)
+        
+        Y = wsbm_vec_dist_cos_cell{idx} ;
+        
+        regressResults = struct() ; 
+        [ regressResults.xvalR2 , ...
+            regressResults.xvalsqErr, ... 
+            regressResults.xvalYhat, ...
+            regressResults.coef, ...
+            regressResults.lsFitStruct,...
+            regressResults.permStruct ] ...
+            = nc_FitAndEvaluateModels(Y,xVec,fits{jdx},funcArgs{:}) ;
+        ageBin_regress_cos{idx}{jdx} = regressResults ;
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        Y = wsbm_vec_dist_cb_cell{idx} ;
+        
+        regressResults = struct() ; 
+        [ regressResults.xvalR2 , ...
+            regressResults.xvalsqErr, ... 
+            regressResults.xvalYhat, ...
+            regressResults.coef, ...
+            regressResults.lsFitStruct,...
+            regressResults.permStruct ] ...
+            = nc_FitAndEvaluateModels(Y,xVec,fits{jdx},funcArgs{:}) ;
+        ageBin_regress_cb{idx}{jdx} = regressResults ;
+        
+    end
+end
+
+outName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_ageBin_regResults.mat');
+save(outName,...
+    'ageBin_regress*',...
+    ...
+    '-v7.3')
+
+%% VIEW IT
+
+figure
 
 
+% subp = tight_subplot(1,5,[.10 .05],[.1 .05],[.1 .05]) ;
+% set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.95 0.55]);      
 
+cmap = brewermap(5,'purples') ;
 
+for idx = 1:length(ageBin_regress_cb)
+    
+    disp(idx)
+    
+    currentRegResults = ageBin_regress_cb{idx} ;
 
+    [~,wsbm_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults));
 
+    wsbm_trend = currentRegResults{wsbm_minIdx};
+    %fig1 = figure ;
+    
+%     minus for because we indexing 3-6
+%     axes(subp(idx / 3)) 
 
+    % wsbm
+    [ pl , ln3 ] = viz_blockRegress(wsbm_trend,0, cmap(idx,:)) ;
+    set(pl,'MarkerFaceColor',cmap(idx,:),...
+        'MarkerFaceColor',cmap(idx,:),...
+        'MarkerFaceAlpha',.15,...
+        'MarkerEdgeAlpha',.1)
+   hold
+    
+%     xlim([min(pl.XData)-3 max(pl.XData)+3])
+%     
+%     ylabel(reg_ylabel_names{idx})
+%     xlabel('Age')
+%     
+%     title(reg_result_names{idx})
+    
+%     yrange = ylim ;
+%     yrangeAbs = yrange(2) - yrange(1) ;
+%     % add the R2!! 
+%     if idx < 4
+%         ypos = yrangeAbs * 0.15;
+%         ypos = yrange(1) + ypos ;
+%         ll = legend([ln3 ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','SouthEast','FontSize',12) ;
+%         set(ll,'Units','inches')
+%                 legend('boxoff')
+%     else
+%         ypos = yrangeAbs * 0.97;
+%         ypos = yrange(1) + ypos ;
+%         ll = legend([ln3 ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','NorthEast','FontSize',12);
+%         set(ll,'Units','inches')
+%         legend('boxoff')
+%     end
+
+%     annotText = { strcat('WSBM R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
+%         strcat('Modular R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
+%         strcat('Yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
+%         } ;
+% 
+%     text((min(pl.XData)),ypos, annotText,'FontSize',12,'VerticalAlignment','cap')    
+        
+end
 
 
 

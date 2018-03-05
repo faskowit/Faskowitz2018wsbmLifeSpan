@@ -5,7 +5,7 @@ clearvars
 
 %% load the necessary data
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -39,16 +39,16 @@ comAssort_mat = zeros([nBlocks nSubj]);
 nodeAssort_mat = zeros([nNodes nSubj]);
 comAssort_mat_mod = zeros([nBlocks nSubj]);
 nodeAssort_mat_mod = zeros([nNodes nSubj]);
-comAssort_mat_yeo = zeros([7 nSubj]);
-nodeAssort_mat_yeo = zeros([nNodes nSubj]);
+% comAssort_mat_yeo = zeros([7 nSubj]);
+% nodeAssort_mat_yeo = zeros([nNodes nSubj]);
 
 parti_mat_wsbm = zeros([nNodes nSubj]) ;
 parti_mat_mod = zeros([nNodes nSubj]);
-parti_mat_yeo = zeros([nNodes nSubj]);
+% parti_mat_yeo = zeros([nNodes nSubj]);
 
 zscore_mat_wsbm = zeros([nNodes nSubj]) ;
 zscore_mat_mod = zeros([nNodes nSubj]) ;
-zscore_mat_yeo = zeros([nNodes nSubj]) ;
+% zscore_mat_yeo = zeros([nNodes nSubj]) ;
 
 nNodes = templateModel.Data.n ;
 subjDataMat = zeros([ nNodes nNodes nSubj ]);
@@ -80,24 +80,29 @@ for idx=1:nSubj
         eval_com_assortatvity_wu(tmpAdj,comVecs.wsbm);
     [comAssort_mat_mod(:,idx),nodeAssort_mat_mod(:,idx)] = ...
         eval_com_assortatvity_wu(tmpAdj,comVecs.mod);  
-    [comAssort_mat_yeo(:,idx),nodeAssort_mat_yeo(:,idx)] = ...
-        eval_com_assortatvity_wu(tmpAdj,comVecs.yeo); 
+%     [comAssort_mat_yeo(:,idx),nodeAssort_mat_yeo(:,idx)] = ...
+%         eval_com_assortatvity_wu(tmpAdj,comVecs.yeo); 
     
     parti_mat_wsbm(:,idx) = participation_coef(tmpAdj,comVecs.wsbm);
     parti_mat_mod(:,idx) = participation_coef(tmpAdj,comVecs.mod);
-    parti_mat_yeo(:,idx) = participation_coef(tmpAdj,comVecs.yeo);
+%     parti_mat_yeo(:,idx) = participation_coef(tmpAdj,comVecs.yeo);
 
     zscore_mat_wsbm(:,idx) = module_degree_zscore(tmpAdj,comVecs.wsbm,0);
     zscore_mat_mod(:,idx) = module_degree_zscore(tmpAdj,comVecs.mod,0);
-    zscore_mat_yeo(:,idx) = module_degree_zscore(tmpAdj,comVecs.yeo,0);
+%     zscore_mat_yeo(:,idx) = module_degree_zscore(tmpAdj,comVecs.yeo,0);
 
     
 end
 
 %% look at hemispheric differences
 
-l_hemi = 1:57 ;
-r_hemi = 58:114 ;
+if strcmp(PARCELLATION,'yeo')
+    l_hemi = 1:57 ;
+    r_hemi = 58:114 ;
+elseif strcmp(PARCELLATION,'scale125')
+    l_hemi = 1:111 ;
+    r_hemi = 112:218 ;
+end
 
 wsbm_ks_parti = zeros([nSubj 1]);
 mod_ks_parti = zeros([nSubj 1]);
