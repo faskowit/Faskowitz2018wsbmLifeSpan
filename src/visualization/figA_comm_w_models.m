@@ -2,7 +2,7 @@
 clc 
 clearvars
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -40,8 +40,9 @@ templateData = templateData(scrmb,scrmb) ;
 % lines and off diagonal communities marked by red lines
 % get community assignment stuff
 
-parcels = {'wsbm' 'mod' 'yeo' };
-parcelName = {'WSBM' 'Modular' 'Yeo-7 network'} ;
+% parcels = {'wsbm' 'mod' 'yeo' };
+parcels = {'wsbm' 'mod' };
+parcelName = {'WSBM' 'Modular'} ;
 
 for fig = 1:length(parcels)
 %for fig = 2
@@ -151,7 +152,7 @@ for fig = 1:length(parcels)
 
     % save it
     fileName = strcat(parcels{fig},'_adj.png');
-    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
     %set(gcf,'paperpositionmode','auto');
     print(gcf,'-dpng','-r500',ff);
     close(gcf)
@@ -214,7 +215,7 @@ set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.8]);
 
 % save it
 fileName = strcat('wsbm_predicted_e_w.png');
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)
@@ -332,7 +333,7 @@ for fig = 1:length(parcels)
 
     % save it
     fileName = strcat(parcels{fig},'_commView.png');
-    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
     %set(gcf,'paperpositionmode','auto');
     print(gcf,'-dpng','-r500',ff);
     close(gcf)
@@ -342,8 +343,11 @@ end
 %% plot pred w & e
 % as a zscore plot
 
+pred_w = templateModel.Para.predict_w ;
+pred_w(isnan(pred_w)) = 0 ;
+
 z_predict_e = zscore(templateModel.Para.predict_e);
-z_predict_w = zscore(templateModel.Para.predict_w);
+z_predict_w = zscore(pred_w);
 
 scat = scatter(z_predict_e,z_predict_w) ;
 %axis square
@@ -367,7 +371,7 @@ linLine.Color = [ linLine.Color 0.25 ] ;
 
 % save it
 fileName = strcat('wsbm_predicted_e_vs_w.png');
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)

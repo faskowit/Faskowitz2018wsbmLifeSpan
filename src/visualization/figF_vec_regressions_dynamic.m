@@ -41,7 +41,7 @@ reg_result_names = {'Cos sim. w/ covar.' 'Cos sim. w/ covar+mov' 'Cos similarity
     'CB dist. w/ covar' 'CB dist. w/ covar+mov' 'CB distance'};
 
 reg_ylabel_names = { 'Cos similarity adj. for covar' 'Cos similarity adj. for covar, mov' 'Cos similarity' ...
-    'CB distance adj. covar' 'CB distance adj. for covar, mov' 'CB distance'} ;
+    'CB distance for adj. covar' 'CB distance adj. for covar, mov' 'CB distance'} ;
 
 default_cmap = [0    0.4470    0.7410 ;
                 0.8500    0.3250    0.0980;
@@ -114,13 +114,13 @@ for idx = 1:length(all_reg_results)
         %strcat('yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
         } ;
 
-    text((min(pl.XData)+2),ypos, annotText,'FontSize',10,'VerticalAlignment','cap')    
+    text((min(pl.XData)+2),ypos, annotText,'FontSize',16,'VerticalAlignment','cap')    
     
 end
 
 % save it
 fileName = 'comVec_dynamic_distances.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)
@@ -173,13 +173,13 @@ for idx = [ 3 6 ]
     yrangeAbs = yrange(2) - yrange(1) ;
     % add the R2!! 
     if idx < 4
-        ypos = yrangeAbs * 0.09;
+        ypos = yrangeAbs * 0.11;
         ypos = yrange(1) + ypos ;
         ll = legend([ ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','SouthEast','FontSize',12) ;
         set(ll,'Units','inches')
         legend('boxoff')
     else
-        ypos = yrangeAbs * 0.97;
+        ypos = yrangeAbs * 0.95;
         ypos = yrange(1) + ypos ;
         ll = legend([ ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','NorthEast','FontSize',12) ;
         set(ll,'Units','inches')
@@ -191,13 +191,13 @@ for idx = [ 3 6 ]
 %         strcat('yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
         } ;
 
-    text((min(pl.XData)+2),ypos, annotText,'FontSize',10,'VerticalAlignment','cap')    
+    text((min(pl.XData)+2),ypos, annotText,'FontSize',16,'VerticalAlignment','cap')    
     
 end
 
 % save it
 fileName = 'comVec_dynamic_distances_noCov.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)
@@ -205,11 +205,11 @@ close(gcf)
 %% VERSATILITY MAP
 
 vers_range = max([ wsbm_vers mod_vers ]) - min([ wsbm_vers mod_vers ]) ;
-vr = vers_range * 0.03 ;
-vers_range = [ min([ wsbm_vers mod_vers ])-vr max([ wsbm_vers mod_vers ])+vr ];
+vr = vers_range * 0.02 ;
+vers_range = [ min([ wsbm_vers mod_vers ])-vr max([ wsbm_vers mod_vers ])+(2*vr) ];
 
-% [lh_fig , rh_fig ] = pictureNodeStat(wsbm_vers,'both',[],'yeo',vers_range) ;
-[lh_fig , rh_fig ] = pictureNodeStat(wsbm_vers,'both') ;
+[lh_fig , rh_fig ] = pictureNodeStat(wsbm_vers,'both','purples','yeo',vers_range) ;
+% [lh_fig , rh_fig ] = pictureNodeStat(wsbm_vers,'both') ;
 
 fileName = 'comVec_dynamic_wsbm_vers_lh.png';
 ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
@@ -224,8 +224,8 @@ print(rh_fig,'-dpng','-r500',ff);
 close(rh_fig)
 
 % mod
-% [lh_fig , rh_fig ] = pictureNodeStat(mod_vers,'both',[],'yeo',vers_range) ;
-[lh_fig , rh_fig ] = pictureNodeStat(mod_vers,'both') ;
+[lh_fig , rh_fig ] = pictureNodeStat(mod_vers,'both','purples','yeo',vers_range) ;
+% [lh_fig , rh_fig ] = pictureNodeStat(mod_vers,'both') ;
 
 fileName = 'comVec_dynamic_mod_vers_lh.png';
 ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
@@ -240,7 +240,7 @@ print(rh_fig,'-dpng','-r500',ff);
 close(rh_fig)
 
 % and how plot the difference
-[lh_fig , rh_fig ] = pictureNodeStat(emp_diff,'both','RdBu') ;
+[lh_fig , rh_fig ] = pictureNodeStat(passBonfthr_emp_diff,'both','RdBu') ;
 
 fileName = 'comVec_dynamic_diff_vers_lh.png';
 ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
@@ -503,4 +503,11 @@ close(gcf)
 %    ylim(y_lim)
 % end
 % suptitle('mod comm eud')
+
+%% some ttests
+
+[a,b,c,d] = ttest2(wsbm_weiVec_cos,mod_weiVec_cos,'Vartype','unequal')
+[a,b,c,d] = ttest2(wsbm_weiVec_cb,mod_weiVec_cb,'Vartype','unequal')
+
+
 

@@ -1,7 +1,7 @@
 clc 
 clearvars
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -26,14 +26,14 @@ mkdir(outputdir)
 
 comStructNames = { 'wsbm' 'mod' 'yeo' } ;
 fitNames = { 'linear' 'quadratic' 'possion' } ;
-
-statMapAcrossMethod = cell([ 6 1 ]);
-statMapAcrossMethod{1} = wsbm_rdens_statMat ;
-statMapAcrossMethod{2} = mod_rdens_statMat ;
-statMapAcrossMethod{3} = yeo_rdens_statMat ;
-statMapAcrossMethod{4} = wsbm_rmdens_statMat ;
-statMapAcrossMethod{5} = mod_rmdens_statMat ;
-statMapAcrossMethod{6} = yeo_rmdens_statMat ;
+% 
+% statMapAcrossMethod = cell([ 6 1 ]);
+% statMapAcrossMethod{1} = wsbm_rdens_statMat ;
+% statMapAcrossMethod{2} = mod_rdens_statMat ;
+% statMapAcrossMethod{3} = yeo_rdens_statMat ;
+% statMapAcrossMethod{4} = wsbm_rmdens_statMat ;
+% statMapAcrossMethod{5} = mod_rmdens_statMat ;
+% statMapAcrossMethod{6} = yeo_rmdens_statMat ;
 
 % results w/ pvals
 statMap_resultsXValR2 = cell([ 6 1]);
@@ -84,20 +84,25 @@ for sm = 1:length(statMapAcrossMethod)
     
 end
 
-%% also look at stats from other regressions
+%% also gather stats from other regressions
 
-otherStatMapAcrossMethods = cell([6 1]) ;
-otherStatMapAcrossMethods{1} = wsbm_dens_statMat ;
-otherStatMapAcrossMethods{2} = mod_dens_statMat ;
-otherStatMapAcrossMethods{3} = yeo_dens_statMat ;
-otherStatMapAcrossMethods{4} = wsbm_rdenseb_statMat ;
-otherStatMapAcrossMethods{5} = mod_rdenseb_statMat ;
-otherStatMapAcrossMethods{6} = yeo_rdenseb_statMat ;
+% otherStatMapAcrossMethods = cell([6 1]) ;
+% otherStatMapAcrossMethods{1} = wsbm_dens_statMat ;
+% otherStatMapAcrossMethods{2} = mod_dens_statMat ;
+% otherStatMapAcrossMethods{3} = yeo_dens_statMat ;
+% otherStatMapAcrossMethods{4} = wsbm_rdenseb_statMat ;
+% otherStatMapAcrossMethods{5} = mod_rdenseb_statMat ;
+% otherStatMapAcrossMethods{6} = yeo_rdenseb_statMat ;
+
+otherStatMapAcrossMethods = cell([2 1]) ;
+otherStatMapAcrossMethods{1} = wsbm_rdens_statMat ;
+otherStatMapAcrossMethods{2} = mod_rdens_statMat ;
 
 % results no pvals
-otherStatMap_resultsXValR2 = cell([ 6 1]);
+% otherStatMap_resultsXValR2 = cell([ 6 1]);
+otherStatMap_resultsXValR2 = cell([ 2 1]);
 
-for sm = 1:length(statMapAcrossMethod)
+for sm = 1:length(otherStatMapAcrossMethods)
     
     currStatMap = otherStatMapAcrossMethods{sm} ;
 
@@ -140,10 +145,12 @@ end
 
 %% look at them now
 % rdens
+comStructNames = {'wsbm' 'mod'} ;
+
 for fig = 1:length(comStructNames)
 %for fig = 1:1
 
-    plotStats = statMap_resultsXValR2{fig} ;
+    plotStats = otherStatMap_resultsXValR2{fig} ;
     
     plotNames = {'Linear R-squared' 'Quadratic R-squared' 'Poisson R-squared'};
     
@@ -162,11 +169,14 @@ for fig = 1:length(comStructNames)
     for tsb_idx = 1:3
 
         axes(subp(tsb_idx))
+%         viz_statsInMat_wComm(plotStats(:,:,tsb_idx),...
+%             commVec,'Paired',10,...
+%             0,[0 0.3],'Greys',plotNames{tsb_idx},0.15) ;
+
         viz_statsInMat_wComm(plotStats(:,:,tsb_idx),...
-            commVec,'Paired',10,...
+            commVec,'Paired',11,...
             0,[0 0.3],'Greys',plotNames{tsb_idx},0.15) ;
-
-
+        
         set(gca,'XColor',[ 0 0 0 0.0001 ])
         set(gca,'YColor',[ 0 0 0 0.0001 ])
         ax = gca ;
@@ -177,15 +187,16 @@ for fig = 1:length(comStructNames)
 
     hold off
     
-    % save it
-    fileName = strcat(comStructNames{fig},'_rdens_regressR2.png');
-    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
-    %set(gcf,'paperpositionmode','auto');
-    print(gcf,'-dpng','-r500',ff);
-    close(gcf)
+%     % save it
+%     fileName = strcat(comStructNames{fig},'_rdens_regressR2.png');
+%     ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
+%     %set(gcf,'paperpositionmode','auto');
+%     print(gcf,'-dpng','-r500',ff);
+%     close(gcf)
 
 end
-% rmdens
+
+%% rmdens
 for fig = 1:length(comStructNames)
 %for fig = 1:1
 
@@ -225,7 +236,7 @@ for fig = 1:length(comStructNames)
     
     % save it
     fileName = strcat(comStructNames{fig},'_rmdens_regressR2.png');
-    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
     %set(gcf,'paperpositionmode','auto');
     print(gcf,'-dpng','-r500',ff);
     close(gcf)
@@ -275,7 +286,7 @@ for fig = 1:length(comStructNames2)
 
     % save it
     fileName = strcat(comStructNames2{fig},'_',otherNames{fig},'_regressR2.png');
-    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
     %set(gcf,'paperpositionmode','auto');
     print(gcf,'-dpng','-r500',ff);
     close(gcf)
@@ -286,7 +297,7 @@ end
 %% plot some regressions
 
 regressNames = {'linear' 'quadratic' 'poisson'} ;
-cmap = brewermap(10,'paired') ;
+cmap = brewermap(11,'paired') ;
 
 for commStrucIdx = 1:length(comStructNames)
 %for commStrucIdx = 1:1
@@ -295,7 +306,7 @@ for commStrucIdx = 1:length(comStructNames)
     coms = unique(coms) ;
     
     tmpStatMap = statMapAcrossMethod{commStrucIdx} ;
-    tmpResultsMap = statMap_resultsXValR2{commStrucIdx} ;
+    tmpResultsMap = otherStatMap_resultsXValR2{commStrucIdx} ;
 
     [~,b] = sort(tmpResultsMap(:),'descend') ;
     [i,j,k] = ind2sub(size(tmpResultsMap),b) ;
@@ -337,7 +348,7 @@ for commStrucIdx = 1:length(comStructNames)
 
     % save it
     fileName = strcat(comStructNames{commStrucIdx},'_interRegress.png');
-    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
     %set(gcf,'paperpositionmode','auto');
     print(gcf,'-dpng','-r500',ff);
     close(gcf)

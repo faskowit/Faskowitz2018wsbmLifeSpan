@@ -1,7 +1,7 @@
 clc 
 clearvars
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -42,7 +42,7 @@ reg_result_names = {'Cos sim. w/ covar.' 'Cos sim. w/ covar+mov' 'Cos similarity
     'CB dist. w/ covar' 'CB dist. w/ covar+mov' 'CB distance'};
 
 reg_ylabel_names = { 'Cos similarity adj. for covar' 'Cos similarity adj. for covar, mov' 'Cos similarity' ...
-    'CB distance adj. covar' 'CB distance adj. for covar, mov' 'CB distance'} ;
+    'CB distance adj. for covar' 'CB distance adj. for covar, mov' 'CB distance'} ;
 
 default_cmap = [0    0.4470    0.7410 ;
                 0.8500    0.3250    0.0980;
@@ -57,24 +57,24 @@ for idx = 1:length(all_reg_results)
 
     [~,wsbm_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults{1}));
     [~,mod_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults{2}));
-    [~,yeo_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults{3}));
+%     [~,yeo_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults{3}));
 
     wsbm_trend = currentRegResults{1}{wsbm_minIdx};
     mod_trend = currentRegResults{2}{mod_minIdx};
-    yeo_trend = currentRegResults{3}{yeo_minIdx};
+%     yeo_trend = currentRegResults{3}{yeo_minIdx};
     
 %% plot it
 
     %fig1 = figure ;
     axes(subp(idx)) 
     
-    % yeo
-    pl = viz_blockRegress(yeo_trend,0,default_cmap(3,:));
-    set(pl,'MarkerFaceColor', default_cmap(3,:),...
-        'MarkerEdgeColor',default_cmap(3,:),...
-        'MarkerFaceAlpha',.15,...
-        'MarkerEdgeAlpha',.1) 
-    hold
+%     % yeo
+%     pl = viz_blockRegress(yeo_trend,0,default_cmap(3,:));
+%     set(pl,'MarkerFaceColor', default_cmap(3,:),...
+%         'MarkerEdgeColor',default_cmap(3,:),...
+%         'MarkerFaceAlpha',.15,...
+%         'MarkerEdgeAlpha',.1) 
+%     hold
 
     % mod
     pl = viz_blockRegress(mod_trend,0,default_cmap(2,:));
@@ -110,21 +110,21 @@ for idx = 1:length(all_reg_results)
         ypos = yrange(1) + ypos ;
     end
 
-    annotText = { strcat('wsbm R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
-        strcat('mod R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
-        strcat('yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
+    annotText = { strcat('WSBM R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
+        strcat('Mod R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
+%         strcat('yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
         } ;
 
-    text((min(pl.XData)+2),ypos, annotText,'FontSize',10,'VerticalAlignment','cap')    
+    text((min(pl.XData)+2),ypos, annotText,'FontSize',16,'VerticalAlignment','cap')    
     
 end
 
-% save it
+% % save it
 fileName = 'comVec_static_distances.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
-close(gcf)
+% close(gcf)
 
 %% but also just visualize the similarity and distance wihtout covar
 
@@ -139,23 +139,23 @@ for idx = [ 3 6 ]
 
     [~,wsbm_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults{1}));
     [~,mod_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults{2}));
-    [~,yeo_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults{3}));
+%     [~,yeo_minIdx] = min(cellfun(@(x) sqrt(mean(x.xvalsqErr)), currentRegResults{3}));
 
     wsbm_trend = currentRegResults{1}{wsbm_minIdx};
     mod_trend = currentRegResults{2}{mod_minIdx};
-    yeo_trend = currentRegResults{3}{yeo_minIdx};
+%     yeo_trend = currentRegResults{3}{yeo_minIdx};
     %fig1 = figure ;
     
     % minus for because we indexing 3-6
     axes(subp(idx / 3)) 
     
-    % yeo
-    [ pl, ln1] = viz_blockRegress(yeo_trend,0,default_cmap(3,:));
-    set(pl,'MarkerFaceColor', default_cmap(3,:),...
-        'MarkerEdgeColor',default_cmap(3,:),...
-        'MarkerFaceAlpha',.15,...
-        'MarkerEdgeAlpha',.1) 
-    hold
+%     % yeo
+%     [ pl, ln1] = viz_blockRegress(yeo_trend,0,default_cmap(3,:));
+%     set(pl,'MarkerFaceColor', default_cmap(3,:),...
+%         'MarkerEdgeColor',default_cmap(3,:),...
+%         'MarkerFaceAlpha',.15,...
+%         'MarkerEdgeAlpha',.1) 
+%     hold
 
     % mod
     [ pl , ln2 ] = viz_blockRegress(mod_trend,0,default_cmap(2,:));
@@ -183,32 +183,36 @@ for idx = [ 3 6 ]
     yrange = ylim ;
     yrangeAbs = yrange(2) - yrange(1) ;
     % add the R2!! 
+    
     if idx < 4
         ypos = yrangeAbs * 0.15;
         ypos = yrange(1) + ypos ;
-        ll = legend([ln3 ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','SouthEast','FontSize',12) ;
+%         ll = legend([ln3 ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','SouthEast','FontSize',12) ;
+    ll = legend([ln3 ln2 ], {'WSBM' 'Modular'},'Location','SouthEast','FontSize',16) ;
+
         set(ll,'Units','inches')
                 legend('boxoff')
     else
         ypos = yrangeAbs * 0.97;
         ypos = yrange(1) + ypos ;
-        ll = legend([ln3 ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','NorthEast','FontSize',12);
+%         ll = legend([ln3 ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','NorthEast','FontSize',12);
+        ll = legend([ln3 ln2 ], {'WSBM' 'Modular'},'Location','NorthEast','FontSize',16) ;
         set(ll,'Units','inches')
         legend('boxoff')
     end
 
     annotText = { strcat('WSBM R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
         strcat('Modular R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
-        strcat('Yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
+%         strcat('Yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
         } ;
 
-    text((min(pl.XData)),ypos, annotText,'FontSize',12,'VerticalAlignment','cap')    
+    text((min(pl.XData)),ypos, annotText,'FontSize',16,'VerticalAlignment','cap')    
         
 end
 
 % save it
 fileName = 'comVec_static_distances_noCov.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)
