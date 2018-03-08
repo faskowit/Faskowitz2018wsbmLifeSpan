@@ -3,7 +3,7 @@ clearvars
 
 %% load the necessary data
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -44,31 +44,31 @@ commSizes = histcounts(sort(comVecs.wsbm));
 
 %% print info about the nodes in each community vect
 
-labNames = load('data/raw/NKIen1/yeo/nodeLabels.mat') ;
-labNames = labNames.nodeLabels ;
-labNames = regexprep(labNames,'.*17Networks_','') ;
-labNames = regexprep(labNames,'.label','') ;
-
-% wsbm
-[wsbm_sort,wsbm_sort_idx] = sort(comVecs.wsbm);
-comm_tbl = table();
-comm_tbl.WSBM_community = wsbm_sort ;
-comm_tbl.WSBM_node_name =  labNames(wsbm_sort_idx) ;
-
-% mod
-[mod_sort,mod_sort_idx] = sort(comVecs.mod);
-comm_tbl.Modular_community = mod_sort ;
-comm_tbl.Modular_node_name =  labNames(mod_sort_idx)  ;
-
-% yeo
-% realign to match figs
-tmp_yeo = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.yeo) ;
-[yeo_sort,yeo_sort_idx] = sort(tmp_yeo);
-comm_tbl.Yeo_community = yeo_sort ;
-comm_tbl.Yeo_node_name =  labNames(yeo_sort_idx) ;
-
-fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_node_comm.csv');
-writetable(comm_tbl,fileName,'WriteRowNames',true)
+% labNames = load('data/raw/NKIen1/yeo/nodeLabels.mat') ;
+% labNames = labNames.nodeLabels ;
+% labNames = regexprep(labNames,'.*17Networks_','') ;
+% labNames = regexprep(labNames,'.label','') ;
+% 
+% % wsbm
+% [wsbm_sort,wsbm_sort_idx] = sort(comVecs.wsbm);
+% comm_tbl = table();
+% comm_tbl.WSBM_community = wsbm_sort ;
+% comm_tbl.WSBM_node_name =  labNames(wsbm_sort_idx) ;
+% 
+% % mod
+% [mod_sort,mod_sort_idx] = sort(comVecs.mod);
+% comm_tbl.Modular_community = mod_sort ;
+% comm_tbl.Modular_node_name =  labNames(mod_sort_idx)  ;
+% 
+% % yeo
+% % % realign to match figs
+% % tmp_yeo = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.yeo) ;
+% % [yeo_sort,yeo_sort_idx] = sort(tmp_yeo);
+% % comm_tbl.Yeo_community = yeo_sort ;
+% % comm_tbl.Yeo_node_name =  labNames(yeo_sort_idx) ;
+% 
+% fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_node_comm.csv');
+% writetable(comm_tbl,fileName,'WriteRowNames',true)
 
 %% gather the subject-level data
 
@@ -89,7 +89,8 @@ end
 
 %% template measures
 
-modelNames = { 'wsbm' 'mod' 'yeo' } ;
+% modelNames = { 'wsbm' 'mod' 'yeo' } ;
+modelNames = { 'wsbm' 'mod' } ;
 
 % strength
 tmpl_strength = struct() ;
@@ -102,7 +103,7 @@ for mN = 1:length(modelNames)
     if mN == 3
         nComm = 7 ;
     else
-        nComm = 10 ;
+        nComm = templateModel.R_Struct.k ;
     end
 
     % wsbm
@@ -147,15 +148,10 @@ tmp = make_square(tmp) ;
 %% test to see which interactions are more common than null model
 
 
-
-
-
-
-
-
 %% subject measures
 
-modelNames = { 'wsbm' 'mod' 'yeo' } ;
+% modelNames = { 'wsbm' 'mod' 'yeo' } ;
+modelNames = { 'wsbm' 'mod' } ;
 
 % strength
 subj_strength = struct() ;
@@ -168,7 +164,7 @@ for mN = 1:length(modelNames)
     if mN == 3
         nComm = 7 ;
     else
-        nComm = 10 ;
+        nComm = templateModel.R_Struct.k ;
     end
 
     for idx = 1:nSubj
@@ -202,22 +198,22 @@ end
 
 %% subject-level where high degree nodes show up
 
-wsbm_highDappear_subjAll = zeros([ 10 nSubj ]);
-mod_highDappear_subjAll = zeros([ 10 nSubj ]);
-yeo_highDappear_subjAll = zeros([ 7 nSubj ]);
+wsbm_highDappear_subjAll = zeros([ templateModel.R_Struct.k nSubj ]);
+mod_highDappear_subjAll = zeros([ templateModel.R_Struct.k nSubj ]);
+% yeo_highDappear_subjAll = zeros([ 7 nSubj ]);
 
-wsbm_highSappear_subjAll = zeros([ 10 nSubj ]);
-mod_highSappear_subjAll = zeros([ 10 nSubj ]);
-yeo_highSappear_subjAll = zeros([ 7 nSubj ]);
+wsbm_highSappear_subjAll = zeros([ templateModel.R_Struct.k nSubj ]);
+mod_highSappear_subjAll = zeros([ templateModel.R_Struct.k nSubj ]);
+% yeo_highSappear_subjAll = zeros([ 7 nSubj ]);
 
 highD_level = 75 ; 
 
 % need to algn the subj to the ref
 tmp_mod = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.mod) ;
-tmp_yeo = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.yeo) ;
+% tmp_yeo = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.yeo) ;
 
 % need to do this because after alingment, yeo will have gap in com vec
-yeo_lab = unique(tmp_yeo) ;
+% yeo_lab = unique(tmp_yeo) ;
 
 for idx = 1:nSubj
 
@@ -227,27 +223,27 @@ for idx = 1:nSubj
     highD_thr = prctile(sum(currSubjData > 0,2),highD_level) ;
     highD_node = sum(currSubjData > 0,2) > highD_thr ;
     
-    wsbm_highDappear_subjAll(:,idx) = histc(comVecs.wsbm(highD_node),1:10) ;
-    mod_highDappear_subjAll(:,idx) = histc(tmp_mod(highD_node),1:10) ;
-    yeo_highDappear_subjAll(:,idx) = histc(tmp_yeo(highD_node),yeo_lab) ;
+    wsbm_highDappear_subjAll(:,idx) = histc(comVecs.wsbm(highD_node),1:templateModel.R_Struct.k) ;
+    mod_highDappear_subjAll(:,idx) = histc(tmp_mod(highD_node),1:templateModel.R_Struct.k) ;
+%     yeo_highDappear_subjAll(:,idx) = histc(tmp_yeo(highD_node),yeo_lab) ;
    
     highD_thr = prctile(sum(currSubjData,2),highD_level) ;
     highD_node = sum(currSubjData,2) > highD_thr ;
     
-    wsbm_highSappear_subjAll(:,idx) = histc(comVecs.wsbm(highD_node),1:10) ;
-    mod_highSappear_subjAll(:,idx) = histc(tmp_mod(highD_node),1:10) ;
-    yeo_highSappear_subjAll(:,idx) = histc(tmp_yeo(highD_node),yeo_lab) ;
+    wsbm_highSappear_subjAll(:,idx) = histc(comVecs.wsbm(highD_node),1:templateModel.R_Struct.k) ;
+    mod_highSappear_subjAll(:,idx) = histc(tmp_mod(highD_node),1:templateModel.R_Struct.k) ;
+%     yeo_highSappear_subjAll(:,idx) = histc(tmp_yeo(highD_node),yeo_lab) ;
     
 end
   
 % ICC
-wsbm_highD_icc = IPN_icc(wsbm_highappear_subjAll,3,'single') ;
+wsbm_highD_icc = IPN_icc(wsbm_highDappear_subjAll,3,'single') ;
 mod_highD_icc = IPN_icc(mod_highDappear_subjAll,3,'single') ;
-yeo_highD_icc = IPN_icc(yeo_highDappear_subjAll,3,'single') ;
+% yeo_highD_icc = IPN_icc(yeo_highDappear_subjAll,3,'single') ;
 
 wsbm_highS_icc = IPN_icc(wsbm_highSappear_subjAll,3,'single') ;
 mod_highS_icc = IPN_icc(mod_highSappear_subjAll,3,'single') ;
-yeo_highS_icc = IPN_icc(yeo_highSappear_subjAll,3,'single') ;
+% yeo_highS_icc = IPN_icc(yeo_highSappear_subjAll,3,'single') ;
 
 tmpICC = cell([3 1]);
 tmpICC_2 = cell([3 1]);
@@ -255,22 +251,22 @@ tmpICC_2 = cell([3 1]);
 tmpData = cell([3 1]);
 tmpData{1} = wsbm_highDappear_subjAll ;
 tmpData{2} = mod_highDappear_subjAll ;
-tmpData{3} = yeo_highDappear_subjAll ;
+% tmpData{3} = yeo_highDappear_subjAll ;
 
 tmpData_2 = cell([3 1]);
 tmpData_2{1} = wsbm_highSappear_subjAll ;
 tmpData_2{2} = mod_highSappear_subjAll ;
-tmpData_2{3} = yeo_highSappear_subjAll ;
+% tmpData_2{3} = yeo_highSappear_subjAll ;
 
 nBoot = 500 ;
 
 btspCommMed = cell([3 1]) ;
-btspCommMed{1} = zeros([10 nBoot]) ;
-btspCommMed{2} = zeros([10 nBoot]) ;
-btspCommMed{3} =zeros([7 nBoot]) ;
+btspCommMed{1} = zeros([templateModel.R_Struct.k nBoot]) ;
+btspCommMed{2} = zeros([templateModel.R_Struct.k nBoot]) ;
+% btspCommMed{3} =zeros([7 nBoot]) ;
 tmpMed = cell([3 1]) ;
 
-for rep = 1:3
+for rep = 1:2
 
     % lets see if we can bootstrap these values
     tmpRes = zeros([ nBoot 1 ]);
@@ -296,7 +292,7 @@ end
 
 wsbm_highD_icc_c95 = tmpICC{1};
 mod_highD_icc_c95 = tmpICC{2};
-yeo_highD_icc_c95 = tmpICC{3};
+% yeo_highD_icc_c95 = tmpICC{3};
 
 % wsbm_highD_med = [ (tmpMed{1}(:,1) - 0.1)  (tmpMed{1}(:,2) + 0.1) ] ;
 % mod_highD_med = [ (tmpMed{2}(:,1) - 0.1)  (tmpMed{2}(:,2) + 0.1) ] ;
@@ -344,8 +340,12 @@ yeo_highD_icc_c95 = tmpICC{3};
 
 %% make a table
 
-modelNames = { 'wsbm' 'mod' 'yeo' } ;
-com_names = { '1' '2' '3' '4' '5' '6' '7' '8' '9' '10' }' ;
+% modelNames = { 'wsbm' 'mod' 'yeo' } ;
+modelNames = { 'wsbm' 'mod' } ;
+
+% com_names = { '1' '2' '3' '4' '5' '6' '7' '8' '9' '10' }' ;
+com_names = { '1' '2' '3' '4' '5' '6' '7' '8' '9' '10' '11'}' ;
+
 yeo_names = { 'Vis' 'SomMot' 'DorsAttn' 'SalVent' 'Limbic' 'Cont' 'Default' }' ; 
 
 colNames = { 'Mean_within_strength' ...
@@ -359,8 +359,10 @@ colNames2 = { ...
     'Mean_comm_parti_coeff' 'Median_comm_parti_coeff' 'StdDev_comm_parti_coeff'...
     'Mean_Comm_assort' 'Median_Comm_assort' 'StdDev_Comm_assort' } ;
 
-multipleTablesTemplate = cell([3 1]);
-multipleTablesSubj = cell([3 1]);
+% multipleTablesTemplate = cell([3 1]);
+% multipleTablesSubj = cell([3 1]);
+multipleTablesTemplate = cell([2 1]);
+multipleTablesSubj = cell([2 1]);
 
 for mN = 1:length(modelNames)
     
@@ -422,6 +424,32 @@ for mN = 1:length(modelNames)
     
 end
 
+%% make a table that combines the stats
+
+% % wsbm
+% multipleTablesTemplate{mN} = table() ;
+% multipleTablesTemplate{mN}.mean_within_weight = round(tmpl_strength.(modelNames{mN}).within,roundTo,'significant') ;
+% multipleTablesTemplate{mN}.mean_btwn_weight = round(tmpl_strength.(modelNames{mN}).between,roundTo,'significant') ;
+% multipleTablesTemplate{mN}.q_prcnt = round(tmpl_mod.(modelNames{mN})./ ...
+%     sum(tmpl_mod.(modelNames{mN})),roundTo,'significant') ;
+% multipleTablesTemplate{mN}.mean_comm_parti_coef = round(tmpl_parti.comm.(modelNames{mN}),roundTo,'significant');
+% multipleTablesTemplate{mN}.assort_of_comm = round(tmpl_assort.(modelNames{mN}),roundTo,'significant') ;
+
+tempNSubj_tbl = cell([ 3 1 ]) ;
+
+for mN = 1:length(modelNames)
+
+    tempNSubj_tbl{mN} = table() ;
+        
+    for idx = 1:5
+    
+        tempNSubj_tbl{mN}.(colNames{idx}) = multipleTablesTemplate{mN}.(colNames{idx}) ;
+        tempNSubj_tbl{mN}.(strcat(colNames{idx},'_meanSubj')) =  multipleTablesSubj{mN}.(colNames2{((idx-1)*3) + 1}) ;
+        tempNSubj_tbl{mN}.(strcat(colNames{idx},'_stdSubj')) =  multipleTablesSubj{mN}.(colNames2{((idx-1)*3) + 3}) ;
+    end
+    
+end
+
 %% write all of the tables to csv
 
 fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_wsbm_tmpl_stats.csv');
@@ -441,4 +469,15 @@ writetable(multipleTablesSubj{2},fileName,'WriteRowNames',true)
 
 fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_yeo_subjAgg_stats.csv');
 writetable(multipleTablesSubj{3},fileName,'WriteRowNames',true)
+
+%% write the combo tables to csv
+
+fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_wsbm_combo_stats.csv');
+writetable(tempNSubj_tbl{1},fileName,'WriteRowNames',true)
+
+fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_mod_combo_stats.csv');
+writetable(tempNSubj_tbl{2},fileName,'WriteRowNames',true)
+
+fileName = strcat(OUTPUT_DIR, '/processed/', OUTPUT_STR, '_yeo_combo_stats.csv');
+writetable(tempNSubj_tbl{3},fileName,'WriteRowNames',true)
 

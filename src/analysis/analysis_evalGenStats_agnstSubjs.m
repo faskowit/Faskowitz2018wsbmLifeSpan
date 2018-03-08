@@ -118,10 +118,19 @@ end
 %% results across subjects
 
 wsbm_meanKS = cellfun(@(x) mean(x,2),eval_subj_wsbm_K,'UniformOutput',false) ;
-wsbm_bttm5 = cellfun(@(x) mean(x(x >= prctile(x,5))),wsbm_meanKS,'UniformOutput',true) ;
+% wsbm_bttm5 = cellfun(@(x) mean(x(x >= prctile(x,5))),wsbm_meanKS,'UniformOutput',true) ;
 
 mod_meanKS = cellfun(@(x) mean(x,2),eval_subj_mod_K,'UniformOutput',false) ;
-mod_bttm5 = cellfun(@(x) mean(x(x >= prctile(x,5))),mod_meanKS,'UniformOutput',true) ;
+% mod_bttm5 = cellfun(@(x) mean(x(x >= prctile(x,5))),mod_meanKS,'UniformOutput',true) ;
+
+wsbm_subj_means = cellfun(@(x) mean(mean(x,2)),eval_subj_wsbm_K,'UniformOutput',true) ;
+mod_subj_means = cellfun(@(x) mean(mean(x,2)),eval_subj_mod_K,'UniformOutput',true) ;
+
+[a,b,c,d] = ttest2(wsbm_subj_means,mod_subj_means,'Vartype','unequal') 
+mean(wsbm_subj_means)
+std(wsbm_subj_means)
+mean(mod_subj_means)
+std(mod_subj_means)
 
 
 % = cellfun(@(x) median(mean(x,2)),eval_subj_wsbm_K,'UniformOutput',true) ;

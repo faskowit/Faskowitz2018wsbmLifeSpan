@@ -171,8 +171,10 @@ hold off
 
 set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.8, 0.6]);
 
+FIGURE_NAME = 'figL' ;
+
 fileName = 'KS_hemi_stats.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/','figL','/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)
@@ -227,7 +229,7 @@ hold off
 set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.6, 0.6]);
 
 fileName = 'mat_hemi_example.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/','figL','/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)

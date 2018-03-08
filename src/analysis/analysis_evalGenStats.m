@@ -162,7 +162,7 @@ kstest_struct = struct();
 
 % save it
 fileName = 'mean_KS_energy.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)
@@ -225,7 +225,7 @@ xlabel('Mean K-S energy')
 
 % save it
 fileName = 'mean_KS_energy_vs_null.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
 close(gcf)
@@ -303,10 +303,10 @@ end
 
 % save it
 fileName = 'KS_of_stats.png';
-ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',fileName)); 
+ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
-close(gcf)
+% close(gcf)
 
 %% earth mover difference
 
