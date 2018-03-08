@@ -1,8 +1,11 @@
 %% load a config file that sets global parameters
 
+clc
+clearvars
+
 % need to edit config file string to match what you want!!
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -75,8 +78,9 @@ dataStruct = dataStruct(removeVec == 0);
 datasetDemo = datasetDemo(removeVec == 0, :);
 
 %% pick out young subs
+youngIdx = datasetDemo.age > 25 & datasetDemo.age <= 35 ;
 
-youngIdx = datasetDemo.age > ageLowLim & datasetDemo.age <= ageHighLim ;
+% youngIdx = datasetDemo.age > ageLowLim & datasetDemo.age <= ageHighLim ;
 templateSubj_data = dataStruct(youngIdx == 1) ;
 clear youngIdx
 

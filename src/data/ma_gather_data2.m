@@ -72,7 +72,6 @@ for idx=1:nSubj
     % data derivatives
     % whole mat descriptors
     totDensity(idx) = nansum(tmpSubjMat(:));
-    edgeBtwnessCent(:,:,idx) = edge_betweenness_wei(-log(tmpSubjMat));
 
     partiCoeff(:,idx) = participation_coef(tmpSubjMat, ...
         communityLabels) ;
@@ -87,6 +86,7 @@ for idx=1:nSubj
         % node desciptions nx1
         eignVecCent(:,idx) = eigenvector_centrality_und(tmpSubjMat) ;
 
+        edgeBtwnessCent(:,:,idx) = edge_betweenness_wei(-log(tmpSubjMat));
     end
     
     % subj data it in a mat array
@@ -119,19 +119,13 @@ for idx=1:numBlocks
             dens(idx,jdx,kdx) = nansum(tmpSubjMat(:));
             bdens(idx,jdx,kdx) = sum(tmpSubjMat(:)>0);
             
-            % get mat of edge-between
-            tmpSubjMat = squeeze(edgeBtwnessCent(ffi,ffj,kdx));
-            denseb(idx,jdx,kdx) = nansum(tmpSubjMat(:));
-
+            if derivBool == true
+                % get mat of edge-between
+                tmpSubjMat = squeeze(edgeBtwnessCent(ffi,ffj,kdx));
+                denseb(idx,jdx,kdx) = nansum(tmpSubjMat(:));
+            end
+            
         end;
-       
-%         % density with covariates
-%         [ ~ , ~ , res] = regress(squeeze(dens(idx,jdx,:)),[ones(nSubj,1) datasetDemo.SupraTentorialNotVent totDensity]);
-%         rdens(idx,jdx,:) = res;
-%         
-%         % eb with covariates 
-%         [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),[ones(nSubj,1) datasetDemo.SupraTentorialNotVent totDensity]);
-%         rdenseb(idx,jdx,:) = res;
 
         % density with covariates
         [ ~ , ~ , res] = regress(squeeze(dens(idx,jdx,:)),[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
@@ -141,9 +135,11 @@ for idx=1:numBlocks
         [ ~ , ~ , res] = regress(squeeze(bdens(idx,jdx,:)),[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
         rbdens(idx,jdx,:) = res;
         
-        % eb with covariates 
-        [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
-        rdenseb(idx,jdx,:) = res;
+        if derivBool == true
+            % eb with covariates 
+            [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),[ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity]);
+            rdenseb(idx,jdx,:) = res;
+        end
         
         % density with covariates + movement
         [ ~ , ~ , res] = regress(squeeze(dens(idx,jdx,:)), ...
@@ -155,10 +151,12 @@ for idx=1:numBlocks
             [ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity datasetDemo.movement]);
         rmbdens(idx,jdx,:) = res;
         
-        % eb with covariates + movement
-        [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),...
-            [ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity datasetDemo.movement]);
-        rmdenseb(idx,jdx,:) = res;
+        if derivBool == true
+            % eb with covariates + movement
+            [ ~ , ~ , res] = regress(squeeze(denseb(idx,jdx,:)),...
+                [ones(nSubj,1) (datasetDemo.sex(:,1)=='M') totDensity datasetDemo.movement]);
+            rmdenseb(idx,jdx,:) = res;
+        end
         
     end;
 end;
@@ -169,11 +167,8 @@ end;
 gatherStruct.dens = dens ;
 gatherStruct.rdens = rdens ;
 gatherStruct.rbdens = rbdens ;
-gatherStruct.denseb = denseb ; 
-gatherStruct.rdenseb = rdenseb ;
 
 gatherStruct.rmdens = rmdens ;
-gatherStruct.rmdenseb = rmdenseb ;
 gatherStruct.rmbdens = rmbdens ;
 
 % subjMats in a mat array
@@ -183,6 +178,11 @@ gatherStruct.deriv.particiCoef = partiCoeff ;
 gatherStruct.deriv.degreeZscor = degreeZscor ;
 
 if derivBool == true
+    
+    gatherStruct.denseb = denseb ; 
+    gatherStruct.rdenseb = rdenseb ;
+    gatherStruct.rmdenseb = rmdenseb ;
+
     % other derivatives
     gatherStruct.deriv.densities = totDensity ;
     gatherStruct.deriv.densityBin = totDensityBin ;

@@ -1,8 +1,8 @@
 %% load the data
+clc 
+clearvars
 
 load('/home/jfaskowi/JOSHSTUFF/projects/sbm3/reports/reproduce_bootstrapConsensus_script_data.mat')
-addpath('/home/jfaskowi/JOSHSTUFF/projects/sbm3/src/tools')
-addpath('/home/jfaskowi/JOSHSTUFF/scripts/BCT/2017_01_15_BCT/')
 
 %% test consensus strategy
 % lets do a test where we randomly pick x proportion of LOOPER_ITER and run
@@ -23,7 +23,10 @@ for idx=1:100
     
 end
 
-for btiter=1:50
+parallel_pool = gcp ; 
+ppm1 = ParforProgMon('indivFits',100,1) ;
+
+for btiter=1:100
 
     %btIdx = datasample(1:100,100) ;
 
@@ -100,6 +103,8 @@ for btiter=1:50
     bt_C{btiter} = btC ;
     bt_kiter_prior_results{btiter} =  btconsensus_kiter_prior ;
     bt_consensus_model{btiter} = btconsensus_kCentralModel ;
+                
+    ppm1.increment() 
     
 end
 
@@ -116,19 +121,25 @@ save('reproduce_bootstrapConsensus_script_results.mat',...
 
 %% evaluate how these all differ from the original model we got?
 
-mi_btConMods_2_kCentral = zeros([50 1]) ;
+mi_btConMods_2_templateModel = zeros([50 1]) ;
+vi_btConMods_2_templateModel = zeros([50 1]) ; 
 
 % load consensus model
 templateModel = load('/home/jfaskowi/JOSHSTUFF/projects/sbm3/data/interim/yeo_both_normalpoisson_a0p5_templateModel_1.mat') ;
 templateModel = templateModel.templateModel ;
+[~,tm_ca] = community_assign(templateModel) ;
+
 
 TODODODODO
 
 for idx=1:50
     
+    [~,tmp_ca] = community_assign( bt_consensus_model{idx} );
+    
    % just compute nmi from each bt_consensus model to the actual consensus
    % model...
-    mi_btConMods_2_kCentral(idx) = nmi
+    [vi_btConMods_2_templateModel(idx),mi_btConMods_2_templateModel(idx)] = ...
+        partition_distance(tm_ca,tmp_ca) ;
     
 end
 

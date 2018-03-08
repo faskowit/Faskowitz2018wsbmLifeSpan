@@ -26,6 +26,10 @@ if ~exist('priorWeightPttrn','var') || isempty(priorWeightPttrn)
 end
 
 parallel_pool = gcp ; 
+
+%TMP
+ppm1 = ParforProgMon('looper',loopIters,1) ;
+
 parfor idx = 1:loopIters
 
     disp('iteration:')
@@ -42,5 +46,8 @@ parfor idx = 1:loopIters
     
     %save the results 
     loopResults(:,idx + 1) = tempSores ;
+    
+    %TMP
+    ppm1.increment();
     
 end

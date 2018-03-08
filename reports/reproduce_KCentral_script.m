@@ -1,8 +1,9 @@
 %% load data
 
-load('/home/jfaskowi/JOSHSTUFF/projects/sbm3/reports/reproduce_KCentral_script_data.mat')
-addpath('/home/jfaskowi/JOSHSTUFF/projects/sbm3/src/external/CBIG')
+clc
+clearvars
 
+load('/home/jfaskowi/JOSHSTUFF/projects/sbm3/reports/reproduce_KCentral_script_data.mat')
 %% run stuff
 
 % get all the models with best k
@@ -71,7 +72,6 @@ end
 
 %% compare
 
-addpath('~/JOSHSTUFF/scripts/BCT/2017_01_15_BCT/')
 [~,ca1] = community_assign(kiter_prior(:,:,1)) ;
 [~,ca2] = community_assign(kiter_prior_repo) ;
 
