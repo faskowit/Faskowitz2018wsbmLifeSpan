@@ -126,7 +126,9 @@ mod_meanKS = cellfun(@(x) mean(x,2),eval_subj_mod_K,'UniformOutput',false) ;
 wsbm_subj_means = cellfun(@(x) mean(mean(x,2)),eval_subj_wsbm_K,'UniformOutput',true) ;
 mod_subj_means = cellfun(@(x) mean(mean(x,2)),eval_subj_mod_K,'UniformOutput',true) ;
 
-[a,b,c,d] = ttest2(wsbm_subj_means,mod_subj_means,'Vartype','unequal') 
+%[a,b,c,d] = ttest2(wsbm_subj_means,mod_subj_means,'Vartype','unequal') 
+[a,b,c,d] = ttest(wsbm_subj_means,mod_subj_means) 
+
 mean(wsbm_subj_means)
 std(wsbm_subj_means)
 mean(mod_subj_means)

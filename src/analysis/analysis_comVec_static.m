@@ -3,7 +3,7 @@
 clc
 clearvars
 
-config_file='config_template.m';
+config_file='config_scale125.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -220,6 +220,7 @@ end
 % [~,tb1,anova2_stat_cb] = anova2([wsbm_weiVec_cb' mod_weiVec_cb'],1,'off') ;
 % [~,tb2,anova2_stat_cos] = anova2([wsbm_weiVec_cos' mod_weiVec_cos' ],1,'off') ;
 [a,b,c,d] = ttest2(wsbm_weiVec_cb,mod_weiVec_cb,'Vartype','unequal')
+
 [a,b,c,d] = ttest2(wsbm_weiVec_cos,mod_weiVec_cos,'Vartype','unequal')
 
 
