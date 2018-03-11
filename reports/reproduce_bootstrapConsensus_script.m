@@ -115,24 +115,21 @@ end
 
 %% first save results 
 
-save('reproduce_bootstrapConsensus_script_results.mat',...
+save('reproduce_bootstrapConsensus_script_results2.mat',...
     'bt_conCent','bt_conCent_simVec','bt_conCent_simTriu',...
     'bt_C','bt_kiter_prior_results','bt_consensus_model')
 
 %% evaluate how these all differ from the original model we got?
 
-mi_btConMods_2_templateModel = zeros([50 1]) ;
-vi_btConMods_2_templateModel = zeros([50 1]) ; 
+mi_btConMods_2_templateModel = zeros([100 1]) ;
+vi_btConMods_2_templateModel = zeros([100 1]) ; 
 
 % load consensus model
 templateModel = load('/home/jfaskowi/JOSHSTUFF/projects/sbm3/data/interim/yeo_both_normalpoisson_a0p5_templateModel_1.mat') ;
 templateModel = templateModel.templateModel ;
 [~,tm_ca] = community_assign(templateModel) ;
 
-
-TODODODODO
-
-for idx=1:50
+for idx=1:100
     
     [~,tmp_ca] = community_assign( bt_consensus_model{idx} );
     
