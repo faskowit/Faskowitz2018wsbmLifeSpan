@@ -1,7 +1,7 @@
 clc 
 clearvars
 
-config_file='config_scale125.m';
+config_file='config_template.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -26,14 +26,14 @@ mkdir(outputdir)
 
 comStructNames = { 'wsbm' 'mod' 'yeo' } ;
 fitNames = { 'linear' 'quadratic' 'possion' } ;
-% 
-% statMapAcrossMethod = cell([ 6 1 ]);
-% statMapAcrossMethod{1} = wsbm_rdens_statMat ;
-% statMapAcrossMethod{2} = mod_rdens_statMat ;
-% statMapAcrossMethod{3} = yeo_rdens_statMat ;
-% statMapAcrossMethod{4} = wsbm_rmdens_statMat ;
-% statMapAcrossMethod{5} = mod_rmdens_statMat ;
-% statMapAcrossMethod{6} = yeo_rmdens_statMat ;
+
+statMapAcrossMethod = cell([ 6 1 ]);
+statMapAcrossMethod{1} = wsbm_rdens_statMat ;
+statMapAcrossMethod{2} = mod_rdens_statMat ;
+statMapAcrossMethod{3} = yeo_rdens_statMat ;
+statMapAcrossMethod{4} = wsbm_rmdens_statMat ;
+statMapAcrossMethod{5} = mod_rmdens_statMat ;
+statMapAcrossMethod{6} = yeo_rmdens_statMat ;
 
 % results w/ pvals
 statMap_resultsXValR2 = cell([ 6 1]);
@@ -306,7 +306,7 @@ for commStrucIdx = 1:length(comStructNames)
     coms = unique(coms) ;
     
     tmpStatMap = statMapAcrossMethod{commStrucIdx} ;
-    tmpResultsMap = otherStatMap_resultsXValR2{commStrucIdx} ;
+    tmpResultsMap = statMap_resultsXValR2{commStrucIdx} ;
 
     [~,b] = sort(tmpResultsMap(:),'descend') ;
     [i,j,k] = ind2sub(size(tmpResultsMap),b) ;
@@ -341,17 +341,146 @@ for commStrucIdx = 1:length(comStructNames)
             strcat('\color[rgb]{',color1,'}', num2str(coms(i(idx)))   ),...
             32 , '\color{black}-' , 32 , ...
             strcat('\color[rgb]{',color2,'}', num2str(coms(j(idx)))   ) ),...
-            strcat('\color{black}R^2:', 32 , num2str(round(xvalR2, 3)) ) } ;
+            strcat('\color{black}R^2:', 32 , num2str(round(xvalR2, 2, 'significant')) ) } ;
             
-        text((min(pl.XData)+5),ytext, annotText,'FontSize',10,'VerticalAlignment','cap')
+        text((min(pl.XData)+5),ytext, annotText,'FontSize',15,'VerticalAlignment','cap')
     end
 
-    % save it
+%         pause
+%     % save it
     fileName = strcat(comStructNames{commStrucIdx},'_interRegress.png');
     ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
     %set(gcf,'paperpositionmode','auto');
     print(gcf,'-dpng','-r500',ff);
-    close(gcf)
-    
+      close(gcf)
+
 end
 
+
+%% plot some regressions with only 4 shown
+
+regressNames = {'linear' 'quadratic' 'poisson'} ;
+cmap = brewermap(11,'paired') ;
+
+for commStrucIdx = 1:length(comStructNames)
+%for commStrucIdx = 1:1
+
+    coms = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.((comStructNames{commStrucIdx}))) ;
+    coms = unique(coms) ;
+    
+    tmpStatMap = statMapAcrossMethod{commStrucIdx} ;
+    tmpResultsMap = statMap_resultsXValR2{commStrucIdx} ;
+
+    [~,b] = sort(tmpResultsMap(:),'descend') ;
+    [i,j,k] = ind2sub(size(tmpResultsMap),b) ;
+
+    % make a subplot to plot all in
+    subp = tight_subplot(1,4,[.01 .03],[.1 .01],[.02 .02]) ;
+    set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.75]);
+    
+    for idx = 1:4
+
+        axes(subp(idx))
+        
+        % divide by 100 because R^2 reported as 0-100
+        xvalR2 = tmpResultsMap(i(idx),j(idx),k(idx)) ./ 100 ;
+
+        % function [ pl ] = viz_StatMapEntryRegression(statEntry,vertexBool,colorVec)
+        pl = viz_StatMapEntryRegression(tmpStatMap{i(idx),j(idx),k(idx)},0,[ 0 0 0 ]) ;
+        pl.MarkerEdgeAlpha = 0.1 ;
+        xlim([ (min(pl.XData)-2) (max(pl.XData)+2)]);
+
+        axis square
+
+        % add some text
+        ytext = get(subp(idx),'ylim') ;
+        ytext = ytext(2) * 0.9;
+
+        color1 = num2str(cmap(coms(i(idx)),:)) ;
+        color2 = num2str(cmap(coms(j(idx)),:)) ;
+        
+        annotText = { strcat(regressNames{k(idx)},' regression') ... 
+            strcat('block interaction:',32, ...
+            strcat('\color[rgb]{',color1,'}', num2str(coms(i(idx)))   ),...
+            32 , '\color{black}-' , 32 , ...
+            strcat('\color[rgb]{',color2,'}', num2str(coms(j(idx)))   ) ),...
+            strcat('\color{black}R^2:', 32 , num2str(round(xvalR2, 2,'significant')) ) } ;
+            
+        text((min(pl.XData)+5),ytext, annotText,'FontSize',14,'VerticalAlignment','cap')
+    end
+
+    tightfig() ;
+    
+%       pause
+%     % save it
+    fileName = strcat(comStructNames{commStrucIdx},'_interRegress_top4.png');
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
+    %set(gcf,'paperpositionmode','auto');
+    print(gcf,'-dpng','-r500',ff);
+      close(gcf)
+
+end
+
+%% plot some regressions with only 12 shown
+
+regressNames = {'linear' 'quadratic' 'poisson'} ;
+cmap = brewermap(11,'paired') ;
+
+for commStrucIdx = 1:length(comStructNames)
+%for commStrucIdx = 1:1
+
+    coms = CBIG_HungarianClusterMatch(comVecs.wsbm,comVecs.((comStructNames{commStrucIdx}))) ;
+    coms = unique(coms) ;
+    
+    tmpStatMap = statMapAcrossMethod{commStrucIdx} ;
+    tmpResultsMap = statMap_resultsXValR2{commStrucIdx} ;
+
+    [~,b] = sort(tmpResultsMap(:),'descend') ;
+    [i,j,k] = ind2sub(size(tmpResultsMap),b) ;
+
+    % make a subplot to plot all in
+    subp = tight_subplot(3,4,[.05 .001],[.05 .015],[.001 .001]) ;
+    set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.70 0.95]);
+    
+    for idx = 1:12
+
+        axes(subp(idx))
+        
+        % divide by 100 because R^2 reported as 0-100
+        xvalR2 = tmpResultsMap(i(idx),j(idx),k(idx)) ./ 100 ;
+
+        % function [ pl ] = viz_StatMapEntryRegression(statEntry,vertexBool,colorVec)
+        pl = viz_StatMapEntryRegression(tmpStatMap{i(idx),j(idx),k(idx)},0,[ 0 0 0 ]) ;
+        pl.MarkerEdgeAlpha = 0.1 ;
+        xlim([ (min(pl.XData)-2) (max(pl.XData)+2)]);
+
+        axis square
+
+        % add some text
+        ytext = get(subp(idx),'ylim') ;
+        ytext = ytext(2) * 0.9;
+
+        color1 = num2str(cmap(coms(i(idx)),:)) ;
+        color2 = num2str(cmap(coms(j(idx)),:)) ;
+        
+        annotText = { strcat(regressNames{k(idx)},' regression') ... 
+            strcat('block interaction:',32, ...
+            strcat('\color[rgb]{',color1,'}', num2str(coms(i(idx)))   ),...
+            32 , '\color{black}-' , 32 , ...
+            strcat('\color[rgb]{',color2,'}', num2str(coms(j(idx)))   ) ),...
+            strcat('\color{black}R^2:', 32 , num2str(round(xvalR2, 2,'significant')) ) } ;
+            
+        text((min(pl.XData)+5),ytext, annotText,'FontSize',14,'VerticalAlignment','cap')
+    end
+
+    tightfig() ;
+    
+%       pause
+    % save it
+    fileName = strcat(comStructNames{commStrucIdx},'_interRegress_top12.png');
+    ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
+    %set(gcf,'paperpositionmode','auto');
+    print(gcf,'-dpng','-r500',ff);
+      close(gcf)
+
+end
