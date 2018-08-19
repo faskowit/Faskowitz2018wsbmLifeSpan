@@ -5,7 +5,7 @@ clearvars
 
 %% load the necessary data
 
-config_file='config_scale125.m';
+config_file='config_template.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -107,6 +107,31 @@ save(strcat(PROJECT_DIR,'/data/processed/',OUTPUT_STR,'_evalGenReps.mat'),...
 %     'eval_wsbm_K','eval_wsbm_EMD',...
 %     'eval_mod_K','eval_mod_EMD' ...
 %      )
+
+%% plot emd
+
+figure
+set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.8]);
+
+cmap = [0    0.4470    0.7410 ;
+    0.8500    0.3250    0.0980];
+
+histogram(mean(eval_wsbm_EMD,2),...
+    'normalization','probability',...
+    'FaceColor',cmap(1,:),'EdgeAlpha',0.01) 
+hold 
+histogram(mean(eval_mod_EMD,2),...
+    'normalization','probability',...
+    'FaceColor',cmap(2,:),'EdgeAlpha',0.01)
+lg = legend('WSBM','Modular') ;
+lg.FontSize = 16 ;
+
+ylim([0 0.1])
+
+axis square
+
+xlabel('Mean EMD energy')
+ylabel('Normalized frequency')
 
 %% plot energy 
 
