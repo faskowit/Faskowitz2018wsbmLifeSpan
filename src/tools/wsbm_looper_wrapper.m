@@ -32,10 +32,11 @@ ppm1 = ParforProgMon('looper',loopIters,1) ;
 
 parfor idx = 1:loopIters
 
-    disp('iteration:')
-    disp(idx)
+    %disp('iteration:')
+    %disp(idx)
     
     % Fit
+    % function [Best_Models,Scores,Models] = wsbmLooper_2(E,ModelInputs,scorefuncs,numTrialPttrn,priorWeightPttrn)
     [~, tempSores, tempModels] = wsbmLooper_2(inputData, ...
         modelInputs, ...
         scoreFunc,...
