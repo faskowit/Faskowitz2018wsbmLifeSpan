@@ -5,8 +5,6 @@ Project Lead
 ----------------
 
 * Josh Faskowitz <jfaskowi@iu.edu>
-
-Project Contributors
-------------
-
-None.
+* Xiaoran Yan
+* Xi-Nian Zuo
+* Olaf Sporns
