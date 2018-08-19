@@ -2,7 +2,7 @@
 clc 
 clearvars
 
-config_file='config_scale125.m';
+config_file='config_template.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -139,6 +139,8 @@ for fig = 1:length(parcels)
     set(ax,'yticklabel',uniqueLab)
     set(ax,'ticklength',[ 0 0]) 
 
+    set(gca, 'FontSize', 16) 
+    
     % add the colorbar
     cb = colorbar('peer',ax);
     cb.Label.String = 'Streamline Density' ;
@@ -185,8 +187,10 @@ set(ax,'xtick',1:nComm)
 % add the colorbar
 cb = colorbar('peer',ax);
 cb.Label.String = 'Predicted existence' ;
-cb.Label.FontSize = 12 ;
+cb.Label.FontSize = 14 ;
 cb.Label.FontName = 'Arial';
+
+set(gca, 'FontSize', 16) 
 
 % weights now
 
@@ -208,10 +212,12 @@ set(ax,'xtick',1:nComm)
 % add the colorbar
 cb = colorbar('peer',ax);
 cb.Label.String = 'Predicted weight' ;
-cb.Label.FontSize = 12 ;
+cb.Label.FontSize = 14 ;
 cb.Label.FontName = 'Arial';
 
 set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.8]);
+
+set(gca, 'FontSize', 16) 
 
 % save it
 fileName = strcat('wsbm_predicted_e_w.png');
@@ -275,12 +281,14 @@ for fig = 1:length(parcels)
     % set(ax,'ytick',[])
     % set(ax,'xtick',[])
 
+    set(gca, 'FontSize', 16) 
+    
     hold on
 
     % plot off diagonal
     for idx = 1:(nComm-1)
 
-        lineWidth = 1.5;
+        lineWidth = 1.5 ;
         offDiagColor = [1 0 0 0.25] ; 
 
         % vertical   
@@ -308,7 +316,7 @@ for fig = 1:length(parcels)
 
         plot(xOnDiag( (idx*6)+1:((idx+1)*6) ) ,...
             yOnDiag(  (idx*6)+1:((idx+1)*6) ) ,...
-            'Color',cmap_mod(uniqueLab(idx+1),:),'linewidth',3.5)
+            'Color',cmap_mod(uniqueLab(idx+1),:),'linewidth',4.0)
     end
 
     % compute some yticks
@@ -362,12 +370,15 @@ ylabel('Z-score predicted weight')
 
 set(gcf, 'Units', 'Normalized', 'Position', [0.2, 0.2, 0.4, 0.4]);
 pbaspect([1 1 1])
-tightfig()
+% 
 
 % ttt = lsline()
 beta = polyfit(z_predict_e,z_predict_w,1);
 linLine = refline(gca,beta);
 linLine.Color = [ linLine.Color 0.25 ] ;
+
+set(gca, 'FontSize', 16) 
+tightfig()
 
 % save it
 fileName = strcat('wsbm_predicted_e_vs_w.png');

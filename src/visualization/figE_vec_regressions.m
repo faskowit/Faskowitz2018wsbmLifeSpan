@@ -1,7 +1,7 @@
 clc 
 clearvars
 
-config_file='config_scale125.m';
+config_file='config_template.m';
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 addpath(strcat(pwd,'/config'))
 run(config_file);
@@ -48,7 +48,7 @@ default_cmap = [0    0.4470    0.7410 ;
                 0.8500    0.3250    0.0980;
                 0.9290    0.6940    0.1250 ] ;
 
-subp = tight_subplot(2,3,[.10 .05],[.1 .05],[.1 .05]) ;
+subp = tight_subplot(2,3,[.15 .1],[.1 .05],[.15 .1]) ;
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.75]);      
 
 for idx = 1:length(all_reg_results)
@@ -110,6 +110,8 @@ for idx = 1:length(all_reg_results)
         ypos = yrange(1) + ypos ;
     end
 
+    set(gca, 'FontSize', 14)
+    
     annotText = { strcat('WSBM R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
         strcat('Mod R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
 %         strcat('yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
@@ -124,12 +126,12 @@ fileName = 'comVec_static_distances.png';
 ff = fullfile(strcat(PROJECT_DIR,'/reports/figures/',FIGURE_NAME,'/',OUTPUT_STR,'_',fileName)); 
 %set(gcf,'paperpositionmode','auto');
 print(gcf,'-dpng','-r500',ff);
-% close(gcf)
+close(gcf)
 
 %% but also just visualize the similarity and distance wihtout covar
 
 figure
-subp = tight_subplot(1,2,[.10 .05],[.1 .05],[.1 .05]) ;
+subp = tight_subplot(1,2,[.10 .10],[.1 .05],[.15 .1]) ;
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.75]);      
 
 for idx = [ 3 6 ]
@@ -187,26 +189,27 @@ for idx = [ 3 6 ]
     if idx < 4
         ypos = yrangeAbs * 0.15;
         ypos = yrange(1) + ypos ;
-%         ll = legend([ln3 ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','SouthEast','FontSize',12) ;
-    ll = legend([ln3 ln2 ], {'WSBM' 'Modular'},'Location','SouthEast','FontSize',16) ;
-
-        set(ll,'Units','inches')
-                legend('boxoff')
+%         ll = legend([ln3 ln2 ], {'WSBM' 'Modular'},'Location','SouthEast','FontSize',16) ;
+% 
+%         set(ll,'Units','inches')
+%                 legend('boxoff')
     else
         ypos = yrangeAbs * 0.97;
         ypos = yrange(1) + ypos ;
 %         ll = legend([ln3 ln2 ln1 ], {'WSBM' 'Modular' 'Yeo'},'Location','NorthEast','FontSize',12);
-        ll = legend([ln3 ln2 ], {'WSBM' 'Modular'},'Location','NorthEast','FontSize',16) ;
-        set(ll,'Units','inches')
-        legend('boxoff')
+%         ll = legend([ln3 ln2 ], {'WSBM' 'Modular'},'Location','NorthEast','FontSize',16) ;
+%         set(ll,'Units','inches')
+%         legend('boxoff')
     end
 
+    set(gca, 'FontSize', 16) 
+    
     annotText = { strcat('WSBM R^2:',32,num2str(round(wsbm_trend.xvalR2 / 100,3))) ...
         strcat('Modular R^2:',32,num2str(round(mod_trend.xvalR2 / 100,3))) ...
 %         strcat('Yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
         } ;
 
-    text((min(pl.XData)),ypos, annotText,'FontSize',16,'VerticalAlignment','cap')    
+    text((min(pl.XData)),ypos, annotText,'FontSize',18,'VerticalAlignment','cap')    
         
 end
 

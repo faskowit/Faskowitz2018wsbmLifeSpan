@@ -128,7 +128,7 @@ close(gcf)
 %% but also just visualize the similarity and distance...
 
 figure
-subp = tight_subplot(1,2,[.10 .05],[.1 .05],[.1 .05]) ;
+subp = tight_subplot(1,2,[.10 .10],[.1 .05],[.15 .1]) ;
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 0.75 0.75]);      
 
 for idx = [ 3 6 ]
@@ -167,6 +167,8 @@ for idx = [ 3 6 ]
     ylabel(reg_ylabel_names{idx})
     xlabel('Age')
     
+    set(gca, 'FontSize', 16) 
+    
     title(reg_result_names{idx})
     
     yrange = ylim ;
@@ -191,7 +193,7 @@ for idx = [ 3 6 ]
 %         strcat('yeo R^2:',32,num2str(round(yeo_trend.xvalR2 / 100,3))) ...
         } ;
 
-    text((min(pl.XData)+2),ypos, annotText,'FontSize',16,'VerticalAlignment','cap')    
+    text((min(pl.XData)+2),ypos, annotText,'FontSize',18,'VerticalAlignment','cap')    
     
 end
 
