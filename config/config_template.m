@@ -81,6 +81,8 @@ OUTPUT_STR = strcat(PARCELLATION , '_', ...
 ageLowLim = 25 ;
 ageHighLim = 35 ;
 
+OUTPUT_STR = [OUTPUT_STR '' ]
+
 %% make output dir
 
 OUTPUT_DIR = strcat(PROJECT_DIR , '/data/') ; 
